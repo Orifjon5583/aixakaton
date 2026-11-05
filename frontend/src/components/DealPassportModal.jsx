@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { soundEffects } from './SoundEffects';
 
-export default function DealPassportModal({ dealId, onClose, onFilterCompany }) {
+export default function DealPassportModal({ dealId, onClose, onFilterCompany, lang = 'ru' }) {
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -62,18 +62,18 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
             <div className="flex items-center gap-3 text-xs font-mono text-[#8aa587] mb-1">
               <span>{deal?.deal_date || '—'}</span>
               <span>•</span>
-              <span className="uppercase text-[#C8EA4A]">{deal?.contract_type || 'Внутренний'}</span>
+              <span className="uppercase text-[#C8EA4A]">{deal?.contract_type || (lang === 'uz' ? 'Ichki' : 'Внутренний')}</span>
               <span>•</span>
-              <span className="uppercase text-[#8aa587]">{deal?.auction_type || 'Спот'}</span>
+              <span className="uppercase text-[#8aa587]">{deal?.auction_type || (lang === 'uz' ? 'Spot' : 'Спот')}</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-white flex items-center gap-3">
-              <span>Сделка №{deal?.deal_id || dealId}</span>
+              <span>{lang === 'uz' ? `Bitim №${deal?.deal_id || dealId}` : `Сделка №${deal?.deal_id || dealId}`}</span>
               <button 
                 onClick={copyPassportId} 
                 className="text-xs px-2 py-0.5 rounded bg-[#182818] border border-[#2c472c] text-[#A6C49F] hover:text-[#C8EA4A] transition-colors"
-                title="Скопировать номер"
+                title={lang === 'uz' ? "Raqamni nusxalash" : "Скопировать номер"}
               >
-                {copied ? '✓ Скопировано' : 'Копировать'}
+                {copied ? (lang === 'uz' ? '✓ Nusxalandi' : '✓ Скопировано') : (lang === 'uz' ? 'Nusxalash' : 'Копировать')}
               </button>
             </h2>
           </div>
@@ -91,11 +91,11 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
 
         {loading ? (
           <div className="py-16 text-center font-mono text-sm text-[#7F967B] animate-pulse">
-            Загрузка электронного паспорта биржевой сделки...
+            {lang === 'uz' ? 'Birja bitimining elektron pasporti yuklanmoqda...' : 'Загрузка электронного паспорта биржевой сделки...'}
           </div>
         ) : !deal ? (
           <div className="py-16 text-center font-mono text-sm text-red-400">
-            Сделка #{dealId} не найдена в базе данных UZEX.
+            {lang === 'uz' ? `Bitim #${dealId} UZEX ma'lumotlar bazasida topilmadi.` : `Сделка #${dealId} не найдена в базе данных UZEX.`}
           </div>
         ) : (
           <div className="space-y-6">
@@ -104,10 +104,10 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
             <div className="bg-[#121E12] border border-[#253d25] rounded-xl p-4">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="text-xs font-mono text-[#8aa587] uppercase tracking-wider">
-                  Биржевой товар / Номенклатура
+                  {lang === 'uz' ? 'Birja tovari / Nomenklatura' : 'Биржевой товар / Номенклатура'}
                 </span>
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-[#C8EA4A]/10 text-[#C8EA4A] border border-[#C8EA4A]/30">
-                  {deal.deal_status || 'Исполнен'}
+                  {deal.deal_status || (lang === 'uz' ? 'Bajarilgan' : 'Исполнен')}
                 </span>
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-white leading-relaxed">
@@ -119,27 +119,29 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-[#101a10] border border-[#223822] rounded-xl p-5">
                 <div className="text-xs font-mono text-[#7b9777] mb-1 uppercase">
-                  Общая сумма сделки
+                  {lang === 'uz' ? 'Bitimning umumiy summasi' : 'Общая сумма сделки'}
                 </div>
                 <div className="text-2xl sm:text-3xl font-mono font-bold text-[#C8EA4A]">
                   {Number(deal.deal_amount_uzs).toLocaleString('ru-RU')}
                   <span className="text-base font-normal text-[#8aa587] ml-2">UZS</span>
                 </div>
                 <div className="text-[11px] font-mono text-[#5b7357] mt-1">
-                  Валюта расчёта: {deal.currency || 'UZS'}
+                  {lang === 'uz' ? `Hisob-kitob valyutasi: ${deal.currency || 'UZS'}` : `Валюта расчёта: ${deal.currency || 'UZS'}`}
                 </div>
               </div>
 
               <div className="bg-[#101a10] border border-[#223822] rounded-xl p-5">
                 <div className="text-xs font-mono text-[#7b9777] mb-1 uppercase">
-                  Физический объём поставки
+                  {lang === 'uz' ? 'Jismoniy yetkazib berish hajmi' : 'Физический объём поставки'}
                 </div>
                 <div className="text-2xl sm:text-3xl font-mono font-bold text-white">
                   {Number(deal.volume_units || deal.quantity).toLocaleString('ru-RU')}
-                  <span className="text-base font-normal text-[#8aa587] ml-2">{deal.unit || 'ед.'}</span>
+                  <span className="text-base font-normal text-[#8aa587] ml-2">{deal.unit || (lang === 'uz' ? 'birlik' : 'ед.')}</span>
                 </div>
                 <div className="text-[11px] font-mono text-[#5b7357] mt-1">
-                  Формула: {deal.quantity} лотов × {deal.lot_size || 1} {deal.unit}
+                  {lang === 'uz'
+                    ? `Formula: ${deal.quantity} lot × ${deal.lot_size || 1} ${deal.unit}`
+                    : `Формула: ${deal.quantity} лотов × ${deal.lot_size || 1} ${deal.unit}`}
                 </div>
               </div>
             </div>
@@ -153,23 +155,23 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
                   <div className="flex items-center gap-2 mb-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#70FFC2]" />
                     <span className="text-xs font-mono font-bold tracking-wider uppercase text-[#70FFC2]">
-                      ПРОДАВЕЦ (SELLER)
+                      {lang === 'uz' ? 'SOTUVCHI (SELLER)' : 'ПРОДАВЕЦ (SELLER)'}
                     </span>
                   </div>
 
                   <div className="font-semibold text-white text-base mb-1">
-                    {deal.seller_name || 'Предприятие-продавец'}
+                    {deal.seller_name || (lang === 'uz' ? 'Sotuvchi korxona' : 'Предприятие-продавец')}
                   </div>
                   <div className="font-mono text-xs text-[#8aa587] mb-3">
-                    ИНН / STIR: <span className="text-white font-bold">{deal.seller_inn}</span>
+                    {lang === 'uz' ? 'STIR / INN:' : 'ИНН / STIR:'} <span className="text-white font-bold">{deal.seller_inn}</span>
                   </div>
 
                   <div className="pt-3 border-t border-[#1e331e] space-y-1 text-xs font-mono text-[#7b9777]">
                     <div>
-                      Регион: <span className="text-[#A6C49F]">{deal.seller_region || 'Узбекистан'}</span>
+                      {lang === 'uz' ? 'Hudud:' : 'Регион:'} <span className="text-[#A6C49F]">{deal.seller_region || (lang === 'uz' ? 'O‘zbekiston' : 'Узбекистан')}</span>
                     </div>
                     <div>
-                      Брокер: <span className="text-white">{deal.seller_broker}</span> ({deal.seller_broker_name || 'Аккредитованный брокер'})
+                      {lang === 'uz' ? 'Broker:' : 'Брокер:'} <span className="text-white">{deal.seller_broker}</span> ({deal.seller_broker_name || (lang === 'uz' ? 'Akkreditatsiyadan o‘tgan broker' : 'Аккредитованный брокер')})
                     </div>
                   </div>
                 </div>
@@ -183,7 +185,7 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
                     }}
                     className="mt-4 w-full py-2 px-3 rounded-lg bg-[#182718] hover:bg-[#233a23] border border-[#2b442b] text-xs font-mono text-[#C8EA4A] text-center transition-colors"
                   >
-                    Все сделки продавца →
+                    {lang === 'uz' ? 'Sotuvchining barcha bitimlari →' : 'Все сделки продавца →'}
                   </button>
                 )}
               </div>
@@ -194,23 +196,23 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
                   <div className="flex items-center gap-2 mb-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#C8EA4A]" />
                     <span className="text-xs font-mono font-bold tracking-wider uppercase text-[#C8EA4A]">
-                      ПОКУПАТЕЛЬ (BUYER)
+                      {lang === 'uz' ? 'XARIDOR (BUYER)' : 'ПОКУПАТЕЛЬ (BUYER)'}
                     </span>
                   </div>
 
                   <div className="font-semibold text-white text-base mb-1">
-                    {deal.buyer_name || 'Предприятие-покупатель'}
+                    {deal.buyer_name || (lang === 'uz' ? 'Xaridor korxona' : 'Предприятие-покупатель')}
                   </div>
                   <div className="font-mono text-xs text-[#8aa587] mb-3">
-                    ИНН / STIR: <span className="text-white font-bold">{deal.buyer_inn}</span>
+                    {lang === 'uz' ? 'STIR / INN:' : 'ИНН / STIR:'} <span className="text-white font-bold">{deal.buyer_inn}</span>
                   </div>
 
                   <div className="pt-3 border-t border-[#1e331e] space-y-1 text-xs font-mono text-[#7b9777]">
                     <div>
-                      Регион: <span className="text-[#A6C49F]">{deal.buyer_region || 'Узбекистан'}</span>
+                      {lang === 'uz' ? 'Hudud:' : 'Регион:'} <span className="text-[#A6C49F]">{deal.buyer_region || (lang === 'uz' ? 'O‘zbekiston' : 'Узбекистан')}</span>
                     </div>
                     <div>
-                      Брокер: <span className="text-white">{deal.buyer_broker}</span> ({deal.buyer_broker_name || 'Аккредитованный брокер'})
+                      {lang === 'uz' ? 'Broker:' : 'Брокер:'} <span className="text-white">{deal.buyer_broker}</span> ({deal.buyer_broker_name || (lang === 'uz' ? 'Akkreditatsiyadan o‘tgan broker' : 'Аккредитованный брокер')})
                     </div>
                   </div>
                 </div>
@@ -224,7 +226,7 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
                     }}
                     className="mt-4 w-full py-2 px-3 rounded-lg bg-[#182718] hover:bg-[#233a23] border border-[#2b442b] text-xs font-mono text-[#C8EA4A] text-center transition-colors"
                   >
-                    Все сделки покупателя →
+                    {lang === 'uz' ? 'Xaridorning barcha bitimlari →' : 'Все сделки покупателя →'}
                   </button>
                 )}
               </div>
@@ -234,35 +236,35 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
             {/* Detailed Parameters Registry Table */}
             <div className="bg-[#0f170f] border border-[#1f331f] rounded-xl p-4">
               <div className="text-xs font-mono text-[#8aa587] uppercase tracking-wider mb-3">
-                Технические спецификации контракта
+                {lang === 'uz' ? 'Shartnomaning texnik xususiyatlari' : 'Технические спецификации контракта'}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
                 <div className="bg-[#142014] p-2.5 rounded-lg border border-[#233823]">
-                  <div className="text-[#6d8569] text-[10px]">Цена за единицу</div>
+                  <div className="text-[#6d8569] text-[10px]">{lang === 'uz' ? 'Birlik narxi' : 'Цена за единицу'}</div>
                   <div className="text-white font-bold mt-0.5">
                     {Number(deal.unit_price).toLocaleString('ru-RU')} UZS
                   </div>
                 </div>
 
                 <div className="bg-[#142014] p-2.5 rounded-lg border border-[#233823]">
-                  <div className="text-[#6d8569] text-[10px]">Стартовая цена</div>
+                  <div className="text-[#6d8569] text-[10px]">{lang === 'uz' ? 'Boshlang‘ich narx' : 'Стартовая цена'}</div>
                   <div className="text-white font-bold mt-0.5">
                     {deal.starting_price ? `${Number(deal.starting_price).toLocaleString('ru-RU')} UZS` : '—'}
                   </div>
                 </div>
 
                 <div className="bg-[#142014] p-2.5 rounded-lg border border-[#233823]">
-                  <div className="text-[#6d8569] text-[10px]">ID Контракта</div>
+                  <div className="text-[#6d8569] text-[10px]">{lang === 'uz' ? 'Shartnoma ID' : 'ID Контракта'}</div>
                   <div className="text-[#C8EA4A] font-bold mt-0.5">
                     #{deal.contract_id || deal.deal_id}
                   </div>
                 </div>
 
                 <div className="bg-[#142014] p-2.5 rounded-lg border border-[#233823]">
-                  <div className="text-[#6d8569] text-[10px]">Базис поставки</div>
+                  <div className="text-[#6d8569] text-[10px]">{lang === 'uz' ? 'Yetkazib berish bazisi' : 'Базис поставки'}</div>
                   <div className="text-white font-bold mt-0.5 truncate" title={deal.region}>
-                    {deal.region || 'Склад продавца'}
+                    {deal.region || (lang === 'uz' ? 'Sotuvchi ombori' : 'Склад продавца')}
                   </div>
                 </div>
               </div>
@@ -270,10 +272,10 @@ export default function DealPassportModal({ dealId, onClose, onFilterCompany }) 
               <div className="mt-3 pt-3 border-t border-[#1b2b1b] flex flex-wrap items-center justify-between text-[11px] font-mono text-[#5b7357]">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#C8EA4A]" />
-                  <span>ВЕРИФИЦИРОВАНО В DUCKDB DWH • 100% ФАКТИЧЕСКИЙ АУДИТ</span>
+                  <span>{lang === 'uz' ? 'DUCKDB DWH DA TASDIQLANGAN • 100% FAKTIK AUDIT' : 'ВЕРИФИЦИРОВАНО В DUCKDB DWH • 100% ФАКТИЧЕСКИЙ АУДИТ'}</span>
                 </div>
                 <div>
-                  Дата клиринга: {deal.payment_date || deal.deal_date}
+                  {lang === 'uz' ? `Kliring sanasi: ${deal.payment_date || deal.deal_date}` : `Дата клиринга: ${deal.payment_date || deal.deal_date}`}
                 </div>
               </div>
             </div>

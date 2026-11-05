@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { soundEffects } from './SoundEffects';
 
-export default function MarketCharts({ year = 2026 }) {
+export default function MarketCharts({ year = 2026, lang = 'ru' }) {
   const [metricType, setMetricType] = useState('amount'); // 'amount' or 'deals'
   const [monthlyData, setMonthlyData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
@@ -113,10 +113,10 @@ export default function MarketCharts({ year = 2026 }) {
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1b2b1b]">
           <div>
             <div className="text-xs font-mono text-[#8aa587] uppercase tracking-wider">
-              Динамика торгов ({year})
+              {lang === 'uz' ? `Savdo dinamikasi (${year})` : `Динамика торгов (${year})`}
             </div>
             <h3 className="text-lg font-bold font-mono text-white">
-              Ежемесячная активность биржи
+              {lang === 'uz' ? 'Oylik birja faolligi' : 'Ежемесячная активность биржи'}
             </h3>
           </div>
 
@@ -132,7 +132,7 @@ export default function MarketCharts({ year = 2026 }) {
                   : 'text-[#8aa587] hover:text-white'
               }`}
             >
-              Сумма (трлн UZS)
+              {lang === 'uz' ? 'Summa (trln so‘m)' : 'Сумма (трлн UZS)'}
             </button>
             <button
               onClick={() => {
@@ -145,7 +145,7 @@ export default function MarketCharts({ year = 2026 }) {
                   : 'text-[#8aa587] hover:text-white'
               }`}
             >
-              Сделки (шт)
+              {lang === 'uz' ? 'Bitimlar (dona)' : 'Сделки (шт)'}
             </button>
           </div>
         </div>
@@ -227,13 +227,15 @@ export default function MarketCharts({ year = 2026 }) {
           {hoveredMonth && (
             <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#101b10]/95 border border-[#C8EA4A]/50 rounded-lg px-3 py-1.5 shadow-xl font-mono text-xs flex items-center gap-3">
               <span className="text-[#C8EA4A] font-bold">
-                {monthlyData.find(d => d.month === hoveredMonth)?.name_ru}:
+                {lang === 'uz'
+                  ? (monthlyData.find(d => d.month === hoveredMonth)?.name_uz || monthlyData.find(d => d.month === hoveredMonth)?.month)
+                  : (monthlyData.find(d => d.month === hoveredMonth)?.name_ru || monthlyData.find(d => d.month === hoveredMonth)?.month)}:
               </span>
               <span className="text-white">
-                {monthlyData.find(d => d.month === hoveredMonth)?.deals_count?.toLocaleString()} сделок
+                {monthlyData.find(d => d.month === hoveredMonth)?.deals_count?.toLocaleString()} {lang === 'uz' ? 'ta bitim' : 'сделок'}
               </span>
               <span className="text-[#A6C49F]">
-                ({monthlyData.find(d => d.month === hoveredMonth)?.amount_trln} трлн UZS)
+                ({monthlyData.find(d => d.month === hoveredMonth)?.amount_trln} {lang === 'uz' ? 'trln' : 'трлн'} UZS)
               </span>
             </div>
           )}
@@ -241,8 +243,8 @@ export default function MarketCharts({ year = 2026 }) {
 
         {/* Footer info */}
         <div className="flex items-center justify-between text-[11px] font-mono text-[#5b7357] pt-2 border-t border-[#1b2b1b]">
-          <span>Источник: Spot DWH UZEX</span>
-          <span>Сезонный пик: Сентябрь — Октябрь</span>
+          <span>{lang === 'uz' ? 'Manba: Spot DWH UZEX' : 'Источник: Spot DWH UZEX'}</span>
+          <span>{lang === 'uz' ? 'Mavsumiy cho‘qqi: Sentabr — Oktabr' : 'Сезонный пик: Сентябрь — Октябрь'}</span>
         </div>
       </div>
 
@@ -251,10 +253,10 @@ export default function MarketCharts({ year = 2026 }) {
         
         <div className="pb-3 border-b border-[#1b2b1b]">
           <div className="text-xs font-mono text-[#8aa587] uppercase tracking-wider">
-            Структура рынка ({year})
+            {lang === 'uz' ? `Bozor tuzilishi (${year})` : `Структура рынка (${year})`}
           </div>
           <h3 className="text-lg font-bold font-mono text-white">
-            Ключевые товарные группы
+            {lang === 'uz' ? 'Asosiy tovar guruhlari' : 'Ключевые товарные группы'}
           </h3>
         </div>
 
@@ -306,7 +308,7 @@ export default function MarketCharts({ year = 2026 }) {
               </div>
               <div className="flex items-center gap-2 text-right">
                 <span className="text-[#C8EA4A] font-bold">{slice.percentage}%</span>
-                <span className="text-[#647c61] text-[10px]">({slice.amount_mlrd} млрд)</span>
+                <span className="text-[#647c61] text-[10px]">({slice.amount_mlrd} {lang === 'uz' ? 'mlrd' : 'млрд'})</span>
               </div>
             </div>
           ))}

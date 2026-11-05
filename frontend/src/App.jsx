@@ -208,7 +208,7 @@ export default function App() {
                 </span>
               </div>
               <div className="text-[10px] sm:text-[11px] font-mono text-[#7b9777] hidden sm:block">
-                UZ / 41°18' N 69°14' E • 500 000 СПОТ-СДЕЛОК
+                UZ / 41°18' N 69°14' E • {lang === 'uz' ? '500 000 TA SPOT BITIMI' : '500 000 СПОТ-СДЕЛОК'}
               </div>
             </div>
           </div>
@@ -348,54 +348,54 @@ export default function App() {
                   {/* Card 01: Сумма сделок */}
                   <div className="bg-[#0b120b] border border-[#1f331f] rounded-xl p-4">
                     <div className="text-[10px] text-[#6d8869] uppercase flex justify-between">
-                      <span>01. СУММА СДЕЛОК</span>
+                      <span>{lang === 'uz' ? '01. JAMI AYLANMA' : '01. СУММА СДЕЛОК'}</span>
                       <span className="text-[#C8EA4A]">{selectedYear || 'ALL'}</span>
                     </div>
                     <div className="text-xl sm:text-2xl font-bold text-[#C8EA4A] mt-2">
-                      {stats ? `${stats.total_turnover_trln.toLocaleString()} трлн` : '52,05 трлн'}
+                      {stats ? `${stats.total_turnover_trln.toLocaleString()} ${lang === 'uz' ? 'trln' : 'трлн'}` : `52,05 ${lang === 'uz' ? 'trln' : 'трлн'}`}
                     </div>
                     <div className="text-[10px] text-[#556b53] mt-1">
-                      Оборот спот-рынка UZS
+                      {lang === 'uz' ? 'Spot-bozor aylanmasi UZS' : 'Оборот спот-рынка UZS'}
                     </div>
                   </div>
 
                   {/* Card 02: Сделки */}
                   <div className="bg-[#0b120b] border border-[#1f331f] rounded-xl p-4">
                     <div className="text-[10px] text-[#6d8869] uppercase flex justify-between">
-                      <span>02. СДЕЛКИ</span>
+                      <span>{lang === 'uz' ? '02. BITIMLAR' : '02. СДЕЛКИ'}</span>
                       <span className="text-[#C8EA4A]">{selectedYear || 'ALL'}</span>
                     </div>
                     <div className="text-xl sm:text-2xl font-bold text-white mt-2">
                       {stats ? stats.total_deals.toLocaleString() : '99 306'}
                     </div>
                     <div className="text-[10px] text-[#556b53] mt-1">
-                      Зарегистрировано
+                      {lang === 'uz' ? 'Ro‘yxatdan o‘tgan' : 'Зарегистрировано'}
                     </div>
                   </div>
 
                   {/* Card 03: Участники */}
                   <div className="bg-[#0b120b] border border-[#1f331f] rounded-xl p-4">
                     <div className="text-[10px] text-[#6d8869] uppercase">
-                      03. УЧАСТНИКИ
+                      {lang === 'uz' ? '03. ISHTIROKCHILAR' : '03. УЧАСТНИКИ'}
                     </div>
                     <div className="text-sm sm:text-base font-bold text-white mt-2">
-                      {stats?.sellers_count || 335} прод. / {stats?.buyers_count ? stats.buyers_count.toLocaleString() : '12 878'} пок.
+                      {stats?.sellers_count || 335} {lang === 'uz' ? 'sot.' : 'прод.'} / {stats?.buyers_count ? stats.buyers_count.toLocaleString() : '12 878'} {lang === 'uz' ? 'xar.' : 'пок.'}
                     </div>
                     <div className="text-[10px] text-[#556b53] mt-1">
-                      120 аккредит. брокеров
+                      {lang === 'uz' ? '120 akkreditatsiyali broker' : '120 аккредит. брокеров'}
                     </div>
                   </div>
 
                   {/* Card 04: Экспорт */}
                   <div className="bg-[#0b120b] border border-[#1f331f] rounded-xl p-4">
                     <div className="text-[10px] text-[#6d8869] uppercase">
-                      04. ЭКСПОРТ
+                      {lang === 'uz' ? '04. EKSPORT' : '04. ЭКСПОРТ'}
                     </div>
                     <div className="text-xl sm:text-2xl font-bold text-[#70FFC2] mt-2">
-                      {stats?.export_amount_trln ? `${stats.export_amount_trln} трлн` : '3,31 трлн'}
+                      {stats?.export_amount_trln ? `${stats.export_amount_trln} ${lang === 'uz' ? 'trln' : 'трлн'}` : `3,31 ${lang === 'uz' ? 'trln' : 'трлн'}`}
                     </div>
                     <div className="text-[10px] text-[#556b53] mt-1">
-                      Валютные спот-контракты
+                      {lang === 'uz' ? 'Valyutadagi spot-shartnomalar' : 'Валютные спот-контракты'}
                     </div>
                   </div>
 
@@ -434,13 +434,14 @@ export default function App() {
                   onSelectRegion={(reg) => {
                     console.log("Selected region:", reg);
                   }}
+                  lang={lang}
                 />
               </div>
 
             </div>
 
             {/* Middle Section: Dynamics & Structure Charts (Screenshot 3) */}
-            <MarketCharts year={selectedYear || 2026} />
+            <MarketCharts year={selectedYear || 2026} lang={lang} />
 
             {/* Fast Deal Registry Snapshot & AI Chat Teaser */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -450,6 +451,7 @@ export default function App() {
                 <DealRegistryTable
                   year={selectedYear || 2026}
                   onSelectDeal={(dealId) => setSelectedDealId(dealId)}
+                  lang={lang}
                 />
               </div>
 
@@ -538,6 +540,7 @@ export default function App() {
               year={selectedYear || 2026}
               initialFilter={tableFilterCompany}
               onSelectDeal={(dealId) => setSelectedDealId(dealId)}
+              lang={lang}
             />
           </div>
         )}
@@ -551,20 +554,20 @@ export default function App() {
             {/* Top Interactive Metric Badges */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="p-3.5 rounded-xl bg-[#090E09] border border-[#1f331f]">
-                <div className="text-[10px] font-mono uppercase text-[#6d8869]">Baza hajmi</div>
-                <div className="text-sm font-bold font-mono text-[#C8EA4A] mt-1">500 000 bitim</div>
+                <div className="text-[10px] font-mono uppercase text-[#6d8869]">{lang === 'uz' ? 'Baza hajmi' : 'Объем базы'}</div>
+                <div className="text-sm font-bold font-mono text-[#C8EA4A] mt-1">{lang === 'uz' ? '500 000 bitim' : '500 000 сделок'}</div>
               </div>
               <div className="p-3.5 rounded-xl bg-[#090E09] border border-[#1f331f]">
                 <div className="text-[10px] font-mono uppercase text-[#6d8869]">DuckDB Latency</div>
                 <div className="text-sm font-bold font-mono text-[#70FFC2] mt-1">⚡ 3 – 12 ms</div>
               </div>
               <div className="p-3.5 rounded-xl bg-[#090E09] border border-[#1f331f]">
-                <div className="text-[10px] font-mono uppercase text-[#6d8869]">Arxitektura</div>
+                <div className="text-[10px] font-mono uppercase text-[#6d8869]">{lang === 'uz' ? 'Arxitektura' : 'Архитектура'}</div>
                 <div className="text-sm font-bold font-mono text-white mt-1">Pydantic SQL Plan</div>
               </div>
               <div className="p-3.5 rounded-xl bg-[#090E09] border border-[#1f331f]">
-                <div className="text-[10px] font-mono uppercase text-[#6d8869]">Gallyutsinatsiya</div>
-                <div className="text-sm font-bold font-mono text-[#C8EA4A] mt-1">0% Kafolatlangan</div>
+                <div className="text-[10px] font-mono uppercase text-[#6d8869]">{lang === 'uz' ? 'Gallyutsinatsiya' : 'Галлюцинации'}</div>
+                <div className="text-sm font-bold font-mono text-[#C8EA4A] mt-1">{lang === 'uz' ? '0% Kafolatlangan' : '0% Гарантировано'}</div>
               </div>
             </div>
 
@@ -676,6 +679,7 @@ export default function App() {
           dealId={selectedDealId}
           onClose={() => setSelectedDealId(null)}
           onFilterCompany={handleFilterCompany}
+          lang={lang}
         />
       )}
 
@@ -909,7 +913,7 @@ function ProvenanceModal({ provenance, lang, onClose }) {
                 DATA PROVENANCE & DUCKDB SQL PROOF
               </h3>
               <p className="text-[11px] text-[#7b9777] font-mono">
-                100% фактический расчет на базе 500 000 спот-сделок UZEX
+                {lang === 'uz' ? 'UZEX 500 000 ta spot bitimi asosidagi 100% faktik hisob-kitob' : '100% фактический расчет на базе 500 000 спот-сделок UZEX'}
               </p>
             </div>
           </div>
@@ -918,13 +922,13 @@ function ProvenanceModal({ provenance, lang, onClose }) {
 
         <div className="space-y-3.5 text-xs font-mono">
           <div>
-            <div className="text-[#647c61] uppercase tracking-wider mb-1">Вопрос:</div>
+            <div className="text-[#647c61] uppercase tracking-wider mb-1">{lang === 'uz' ? 'Savol:' : 'Вопрос:'}</div>
             <div className="p-3 rounded-xl bg-[#111c11] border border-[#1f331f] text-white">{provenance.question}</div>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-[11px]">
             <div className="p-2.5 rounded-xl bg-[#111c11] border border-[#1f331f]">
-              <span className="text-[#647c61] block mb-0.5">Язык (Lang):</span>
+              <span className="text-[#647c61] block mb-0.5">{lang === 'uz' ? 'Til (Lang):' : 'Язык (Lang):'}</span>
               <span className="font-bold text-[#C8EA4A]">{provenance.detected_lang?.toUpperCase()}</span>
             </div>
             <div className="p-2.5 rounded-xl bg-[#111c11] border border-[#1f331f]">
@@ -932,7 +936,7 @@ function ProvenanceModal({ provenance, lang, onClose }) {
               <span className="font-bold text-[#70FFC2]">⚡ {provenance.execution_time_ms} ms</span>
             </div>
             <div className="p-2.5 rounded-xl bg-[#111c11] border border-[#1f331f]">
-              <span className="text-[#647c61] block mb-0.5">Строк (Rows):</span>
+              <span className="text-[#647c61] block mb-0.5">{lang === 'uz' ? 'Qatorlar (Rows):' : 'Строк (Rows):'}</span>
               <span className="font-bold text-white">{provenance.row_count ?? 1}</span>
             </div>
           </div>
@@ -941,14 +945,14 @@ function ProvenanceModal({ provenance, lang, onClose }) {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[#647c61] uppercase tracking-wider">
-                  Выполненный безопасный SQL DuckDB:
+                  {lang === 'uz' ? 'Bajarilgan xavfsiz DuckDB SQL:' : 'Выполненный безопасный SQL DuckDB:'}
                 </span>
                 <button
                   onClick={copySQL}
                   className="text-[#C8EA4A] hover:underline flex items-center space-x-1 text-[11px]"
                 >
                   {copiedSQL ? <CheckCheck className="w-3 h-3 text-[#70FFC2]" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedSQL ? 'Скопировано!' : 'Копировать SQL'}</span>
+                  <span>{copiedSQL ? (lang === 'uz' ? 'Nusxalandi!' : 'Скопировано!') : (lang === 'uz' ? 'SQL-dan nusxa olish' : 'Копировать SQL')}</span>
                 </button>
               </div>
               <pre className="p-3.5 rounded-xl bg-black/80 border border-[#243c24] text-[11px] text-[#C8EA4A] overflow-x-auto whitespace-pre-wrap leading-relaxed shadow-inner">
@@ -958,7 +962,7 @@ function ProvenanceModal({ provenance, lang, onClose }) {
           )}
 
           <div>
-            <div className="text-[#647c61] uppercase tracking-wider mb-1">Примененные фильтры:</div>
+            <div className="text-[#647c61] uppercase tracking-wider mb-1">{lang === 'uz' ? 'Qo‘llanilgan filtrlar:' : 'Примененные фильтры:'}</div>
             <pre className="p-2.5 rounded-xl bg-[#111c11] border border-[#1f331f] text-[11px] text-[#A6C49F]">
               {JSON.stringify(provenance.filters_applied, null, 2)}
             </pre>
@@ -967,7 +971,7 @@ function ProvenanceModal({ provenance, lang, onClose }) {
 
         <div className="text-right pt-2 border-t border-[#1f331f]">
           <button onClick={onClose} className="px-4 py-2 rounded-xl bg-[#C8EA4A] text-[#070B07] text-xs font-bold font-mono">
-            Закрыть
+            {lang === 'uz' ? 'Yopish' : 'Закрыть'}
           </button>
         </div>
       </div>
@@ -995,7 +999,7 @@ function DatasetAdminTab({ status, lang, onRefresh }) {
       soundManager.playSuccess();
       onRefresh();
     } catch (err) {
-      alert("Yuklashda xatolik yuz berdi.");
+      alert(lang === 'uz' ? "Yuklashda xatolik yuz berdi." : "Произошла ошибка при загрузке.");
     } finally {
       setUploading(false);
     }
@@ -1006,10 +1010,12 @@ function DatasetAdminTab({ status, lang, onRefresh }) {
       <div>
         <h2 className="text-xl font-bold font-mono flex items-center space-x-2 text-white">
           <Database className="w-5 h-5 text-[#C8EA4A]" />
-          <span>{lang === 'uz' ? 'Dataset & Schema Boshqaruvi (TZ Section 4)' : 'Управление Датасетом и Схемой (ТЗ Раздел 4)'}</span>
+          <span>{lang === 'uz' ? 'Dataset & Schema Boshqaruvi (TZ 4-bo‘lim)' : 'Управление Датасетом и Схемой (ТЗ Раздел 4)'}</span>
         </h2>
         <p className="text-xs text-[#7b9777] mt-1">
-          In-memory DuckDB DWH: 500 000 сделок, автоматическое распознавание схемы и семантики
+          {lang === 'uz'
+            ? 'In-memory DuckDB DWH: 500 000 ta bitim, avtomatik sxema va semantika aniqlash'
+            : 'In-memory DuckDB DWH: 500 000 сделок, автоматическое распознавание схемы и семантики'}
         </p>
       </div>
 
@@ -1028,25 +1034,25 @@ function DatasetAdminTab({ status, lang, onRefresh }) {
               className="text-xs text-[#C8EA4A] hover:underline flex items-center space-x-1 font-mono"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Обновить</span>
+              <span>{lang === 'uz' ? 'Yangilash' : 'Обновить'}</span>
             </button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono mb-4">
             <div className="p-3 rounded-xl bg-[#111c11] border border-[#1f331f]">
-              <div className="text-[#647c61]">Сделок:</div>
+              <div className="text-[#647c61]">{lang === 'uz' ? 'Bitimlar:' : 'Сделок:'}</div>
               <div className="text-base font-bold text-[#C8EA4A] mt-1">{status.total_deals.toLocaleString()}</div>
             </div>
             <div className="p-3 rounded-xl bg-[#111c11] border border-[#1f331f]">
-              <div className="text-[#647c61]">Контрактов:</div>
+              <div className="text-[#647c61]">{lang === 'uz' ? 'Shartnomalar:' : 'Контрактов:'}</div>
               <div className="text-base font-bold text-white mt-1">{status.total_contracts.toLocaleString()}</div>
             </div>
             <div className="p-3 rounded-xl bg-[#111c11] border border-[#1f331f]">
-              <div className="text-[#647c61]">Участников:</div>
+              <div className="text-[#647c61]">{lang === 'uz' ? 'Ishtirokchilar:' : 'Участников:'}</div>
               <div className="text-base font-bold text-[#70FFC2] mt-1">{status.total_participants.toLocaleString()}</div>
             </div>
             <div className="p-3 rounded-xl bg-[#111c11] border border-[#1f331f]">
-              <div className="text-[#647c61]">Период:</div>
+              <div className="text-[#647c61]">{lang === 'uz' ? 'Davr:' : 'Период:'}</div>
               <div className="text-xs font-bold text-white mt-1">{status.period_start} — {status.period_end}</div>
             </div>
           </div>
@@ -1054,7 +1060,7 @@ function DatasetAdminTab({ status, lang, onRefresh }) {
           {/* Columns */}
           <div>
             <h4 className="text-xs font-mono font-bold uppercase text-[#8aa587] mb-2">
-              Определенные колонки и семантические роли (TZ 4):
+              {lang === 'uz' ? 'Aniqlangan ustunlar va semantik rollar (TZ 4):' : 'Определенные колонки и семантические роли (ТЗ 4):'}
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {status.columns && status.columns.map((col, idx) => (
@@ -1075,13 +1081,15 @@ function DatasetAdminTab({ status, lang, onRefresh }) {
       <div className="p-6 rounded-2xl bg-[#090E09] border border-dashed border-[#2b442b] text-center">
         <Upload className="w-8 h-8 text-[#C8EA4A] mx-auto mb-2" />
         <h3 className="font-bold text-sm text-white mb-1">
-          Загрузка нового датасета (CSV / XLSX / JSON)
+          {lang === 'uz' ? 'Yangi dataset yuklash (CSV / XLSX / JSON)' : 'Загрузка нового датасета (CSV / XLSX / JSON)'}
         </h3>
         <p className="text-xs text-[#7b9777] mb-4 max-w-md mx-auto">
-          Файл автоматически валидируется и интегрируется в DuckDB DWH.
+          {lang === 'uz'
+            ? 'Fayl avtomatik tekshiriladi va DuckDB DWH-ga integratsiya qilinadi.'
+            : 'Файл автоматически валидируется и интегрируется в DuckDB DWH.'}
         </p>
         <label className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#C8EA4A] text-[#070B07] text-xs font-mono font-bold cursor-pointer transition">
-          <span>{uploading ? "Загрузка..." : "Выбрать файл"}</span>
+          <span>{uploading ? (lang === 'uz' ? "Yuklanmoqda..." : "Загрузка...") : (lang === 'uz' ? "Faylni tanlash" : "Выбрать файл")}</span>
           <input type="file" accept=".csv,.xlsx,.xls,.json" onChange={handleFileUpload} className="hidden" />
         </label>
       </div>
@@ -1095,10 +1103,12 @@ function AboutTab({ lang }) {
       <div>
         <h2 className="text-xl font-bold font-mono flex items-center space-x-2 text-white">
           <Info className="w-5 h-5 text-[#C8EA4A]" />
-          <span>Архитектура UZEX Observatory & Zero-Hallucination AI</span>
+          <span>{lang === 'uz' ? 'UZEX Observatory & Zero-Hallucination AI Arxitekturasi' : 'Архитектура UZEX Observatory & Zero-Hallucination AI'}</span>
         </h2>
         <p className="text-xs text-[#7b9777] mt-1">
-          Разработано для хакатона UZEX AI Hackathon 2026. Соответствует 100% требований ТЗ.
+          {lang === 'uz'
+            ? 'UZEX AI Hackathon 2026 uchun maxsus ishlab chiqilgan. Texnik topshiriq (TZ) talablariga 100% javob beradi.'
+            : 'Разработано для хакатона UZEX AI Hackathon 2026. Соответствует 100% требований ТЗ.'}
         </p>
       </div>
 
@@ -1107,9 +1117,13 @@ function AboutTab({ lang }) {
           <div className="p-2 rounded-lg bg-[#142614] text-[#C8EA4A] w-max">
             <Cpu className="w-5 h-5" />
           </div>
-          <h3 className="font-bold text-base text-white font-mono">1. Zanjirli Boshqaruv (Chain of Verification)</h3>
+          <h3 className="font-bold text-base text-white font-mono">
+            {lang === 'uz' ? '1. Zanjirli Boshqaruv (Chain of Verification)' : '1. Цепочка Верификации (Chain of Verification)'}
+          </h3>
           <p className="text-xs text-[#8aa587] leading-relaxed">
-            Gemini hech qachon raqam to'qimaydi. Savol Pydantic QueryPlan orqali DuckDB SQL-ga aylanadi va hisoblangan haqiqiy qatorlar qaytariladi.
+            {lang === 'uz'
+              ? "Gemini hech qachon raqam to‘qimaydi. Savol Pydantic QueryPlan orqali DuckDB SQL-ga aylanadi va hisoblangan haqiqiy qatorlar qaytariladi."
+              : "Gemini никогда не придумывает цифры. Вопрос преобразуется через Pydantic QueryPlan в DuckDB SQL и возвращает только фактически рассчитанные строки."}
           </p>
         </div>
 
@@ -1117,9 +1131,13 @@ function AboutTab({ lang }) {
           <div className="p-2 rounded-lg bg-[#142614] text-[#70FFC2] w-max">
             <Zap className="w-5 h-5" />
           </div>
-          <h3 className="font-bold text-base text-white font-mono">2. DuckDB In-Memory Columnar Dvigatel</h3>
+          <h3 className="font-bold text-base text-white font-mono">
+            {lang === 'uz' ? '2. DuckDB In-Memory Columnar Dvigatel' : '2. In-Memory Columnar Движок DuckDB'}
+          </h3>
           <p className="text-xs text-[#8aa587] leading-relaxed">
-            500 000 ta birja bitimi RAM xotirasida saqlanadi. Har qanday agregatsiya 3 ms dan 15 ms gacha bo‘lgan tezlikda bajariladi.
+            {lang === 'uz'
+              ? "500 000 ta birja bitimi RAM xotirasida saqlanadi. Har qanday agregatsiya 3 ms dan 15 ms gacha bo‘lgan tezlikda bajariladi."
+              : "500 000 биржевых сделок хранятся в оперативной памяти. Любая агрегация выполняется со сверхскоростью от 3 до 15 миллисекунд."}
           </p>
         </div>
 
@@ -1127,9 +1145,13 @@ function AboutTab({ lang }) {
           <div className="p-2 rounded-lg bg-[#142614] text-rose-400 w-max">
             <ShieldAlert className="w-5 h-5" />
           </div>
-          <h3 className="font-bold text-base text-white font-mono">3. Qat'iy Anti-Gallyutsinatsiya Kafolati</h3>
+          <h3 className="font-bold text-base text-white font-mono">
+            {lang === 'uz' ? '3. Qat‘iy Anti-Gallyutsinatsiya Kafolati' : '3. Строгая Защита от Галлюцинаций'}
+          </h3>
           <p className="text-xs text-[#8aa587] leading-relaxed">
-            Mavjud bo'lmagan hududlar (Mars sayyorasi), yillar (2027) yoki tovarlar (oltin) so'ralganda rad javobi qaytariladi.
+            {lang === 'uz'
+              ? "Mavjud bo‘lmagan hududlar (Mars sayyorasi), yillar (2027) yoki tovarlar (oltin) so‘ralganda rad javobi qaytariladi va taxmin qilinmaydi."
+              : "При запросе несуществующих локаций (Марс), дат (2027) или товаров система возвращает четкий отказ, исключая любые домыслы."}
           </p>
         </div>
 
@@ -1137,9 +1159,13 @@ function AboutTab({ lang }) {
           <div className="p-2 rounded-lg bg-[#142614] text-[#C8EA4A] w-max">
             <Code className="w-5 h-5" />
           </div>
-          <h3 className="font-bold text-base text-white font-mono">4. Shaffof Faktlar (Data Provenance)</h3>
+          <h3 className="font-bold text-base text-white font-mono">
+            {lang === 'uz' ? '4. Shaffof Faktlar (Data Provenance)' : '4. Полная Прозрачность (Data Provenance)'}
+          </h3>
           <p className="text-xs text-[#8aa587] leading-relaxed">
-            Har bir javob tagida bajarilgan SQL so'rovi, uning bajarilish vaqti va xom ma'lumotlar jadvali taqdim etiladi.
+            {lang === 'uz'
+              ? "Har bir javob tagida bajarilgan SQL so‘rovi, uning bajarilish vaqti va xom ma‘lumotlar jadvali taqdim etiladi."
+              : "Под каждым ответом доступен полный аудит: выполненный SQL-запрос, точное время выполнения в миллисекундах и таблица данных."}
           </p>
         </div>
       </div>

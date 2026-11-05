@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { soundEffects } from './SoundEffects';
 
-export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFilter = '' }) {
+export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFilter = '', lang = 'ru' }) {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialFilter);
@@ -86,10 +86,10 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-[#8aa587] uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-[#C8EA4A]" />
-            <span>Официальный биржевой реестр ({year})</span>
+            <span>{lang === 'uz' ? `Rasmiy birja reyestri (${year})` : `Официальный биржевой реестр (${year})`}</span>
           </div>
           <h3 className="text-lg sm:text-xl font-bold font-mono text-white mt-1">
-            Оперативные спот-сделки UZEX
+            {lang === 'uz' ? 'UZEX tezkor spot-bitimlari' : 'Оперативные спот-сделки UZEX'}
           </h3>
         </div>
 
@@ -98,7 +98,7 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
           <div className="relative flex-1 sm:w-72">
             <input
               type="text"
-              placeholder="Поиск по товару, компании, ID..."
+              placeholder={lang === 'uz' ? "Tovar, kompaniya, ID bo‘yicha qidiruv..." : "Поиск по товару, компании, ID..."}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -121,14 +121,14 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
             onClick={exportRegistryCSV}
             className="px-3 py-1.5 rounded-lg bg-[#162416] hover:bg-[#223622] border border-[#2c472c] text-xs font-mono text-[#C8EA4A] flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>📥 Экспорт CSV</span>
+            <span>{lang === 'uz' ? '📥 CSV eksport' : '📥 Экспорт CSV'}</span>
           </button>
         </div>
       </div>
 
       <div className="text-[10px] text-[#556952] font-mono sm:hidden flex items-center justify-between mt-2">
-        <span>↔️ Jadvalni gorizontal suring</span>
-        <span>Jami: {filteredDeals.length} ta</span>
+        <span>{lang === 'uz' ? '↔️ Jadvalni gorizontal suring' : '↔️ Прокручивайте таблицу'}</span>
+        <span>{lang === 'uz' ? `Jami: ${filteredDeals.length} ta` : `Всего: ${filteredDeals.length} сделок`}</span>
       </div>
 
       {/* Table Container */}
@@ -136,26 +136,26 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
         <table className="w-full text-left font-mono text-xs">
           <thead>
             <tr className="border-b border-[#1b2b1b] text-[#6d8869] text-[11px] uppercase">
-              <th className="py-2.5 px-3">№ Сделки / Дата</th>
-              <th className="py-2.5 px-3">Товар / Номенклатура</th>
-              <th className="py-2.5 px-3 text-right">Сумма сделки</th>
-              <th className="py-2.5 px-3">Продавец</th>
-              <th className="py-2.5 px-3">Покупатель</th>
-              <th className="py-2.5 px-3">Регион</th>
-              <th className="py-2.5 px-3 text-center">Паспорт</th>
+              <th className="py-2.5 px-3">{lang === 'uz' ? '№ Bitim / Sana' : '№ Сделки / Дата'}</th>
+              <th className="py-2.5 px-3">{lang === 'uz' ? 'Tovar / Nomenklatura' : 'Товар / Номенклатура'}</th>
+              <th className="py-2.5 px-3 text-right">{lang === 'uz' ? 'Bitim summasi' : 'Сумма сделки'}</th>
+              <th className="py-2.5 px-3">{lang === 'uz' ? 'Sotuvchi' : 'Продавец'}</th>
+              <th className="py-2.5 px-3">{lang === 'uz' ? 'Xaridor' : 'Покупатель'}</th>
+              <th className="py-2.5 px-3">{lang === 'uz' ? 'Hudud' : 'Регион'}</th>
+              <th className="py-2.5 px-3 text-center">{lang === 'uz' ? 'Pasport' : 'Паспорт'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#152215]">
             {loading ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center text-[#708c6d] animate-pulse">
-                  Загрузка биржевого реестра...
+                  {lang === 'uz' ? 'Birja reyestri yuklanmoqda...' : 'Загрузка биржевого реестра...'}
                 </td>
               </tr>
             ) : pagedDeals.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center text-[#708c6d]">
-                  По запросу «{searchTerm}» сделок не найдено.
+                  {lang === 'uz' ? `«${searchTerm}» bo‘yicha bitimlar topilmadi.` : `По запросу «${searchTerm}» сделок не найдено.`}
                 </td>
               </tr>
             ) : (
@@ -180,7 +180,7 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
                       {deal.product_name}
                     </div>
                     <div className="text-[10px] text-[#708c6d]">
-                      {Number(deal.quantity).toLocaleString()} {deal.unit} • {Number(deal.unit_price).toLocaleString()} UZS/ед
+                      {Number(deal.quantity).toLocaleString()} {deal.unit} • {Number(deal.unit_price).toLocaleString()} UZS/{lang === 'uz' ? 'birlik' : 'ед'}
                     </div>
                   </td>
 
@@ -218,7 +218,7 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
                       }}
                       className="px-2.5 py-1 rounded bg-[#182818] group-hover:bg-[#C8EA4A] group-hover:text-[#090E09] border border-[#2b442b] text-[11px] font-mono text-[#C8EA4A] transition-all"
                     >
-                      Паспорт ↗
+                      {lang === 'uz' ? 'Pasport ↗' : 'Паспорт ↗'}
                     </button>
                   </td>
                 </tr>
@@ -231,7 +231,9 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
       {/* Pagination Footer */}
       <div className="flex items-center justify-between pt-4 mt-2 border-t border-[#1b2b1b] text-xs font-mono text-[#6d8869]">
         <div>
-          Показано: {pagedDeals.length} из {filteredDeals.length} сделок
+          {lang === 'uz'
+            ? `Ko‘rsatildi: ${pagedDeals.length} ta (${filteredDeals.length} tadan)`
+            : `Показано: ${pagedDeals.length} из ${filteredDeals.length} сделок`}
         </div>
 
         <div className="flex items-center gap-2">
@@ -243,7 +245,7 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
             }}
             className="px-2.5 py-1 rounded bg-[#132013] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#1e301e] text-[#A6C49F] transition-colors"
           >
-            ← Назад
+            {lang === 'uz' ? '← Oldingi' : '← Назад'}
           </button>
           <span>
             {page + 1} / {totalPages}
@@ -256,7 +258,7 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
             }}
             className="px-2.5 py-1 rounded bg-[#132013] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#1e301e] text-[#A6C49F] transition-colors"
           >
-            Вперёд →
+            {lang === 'uz' ? 'Keyingi →' : 'Вперёд →'}
           </button>
         </div>
       </div>

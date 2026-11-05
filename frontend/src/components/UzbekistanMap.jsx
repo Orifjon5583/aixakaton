@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { soundEffects } from './SoundEffects';
 import { UZBEKISTAN_REGIONS, UZBEKISTAN_OUTER_BORDER } from './uzbekistanMapData';
 
-export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedRegion }) {
+export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedRegion, lang = 'ru' }) {
   const [is3D, setIs3D] = useState(true);
   const [tradeFlows, setTradeFlows] = useState([]);
   const [regionsData, setRegionsData] = useState({});
@@ -77,7 +77,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
             <span>UZ / 41°18' N 69°14' E</span>
           </div>
           <span className="text-xs font-mono text-[#7e997a] tracking-wider uppercase hidden sm:inline">
-            14 РЕГИОНОВ РЕСПУБЛИКИ УЗБЕКИСТАН ({year})
+            {lang === 'uz' ? `O‘ZBEKISTON RESPUBLIKASI: 14 TA HUDUD (${year})` : `14 РЕГИОНОВ РЕСПУБЛИКИ УЗБЕКИСТАН (${year})`}
           </span>
         </div>
 
@@ -91,7 +91,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                 : 'bg-[#152215] text-[#A6C49F] hover:bg-[#1f321f]'
             }`}
           >
-            <span>{is3D ? '3D РАКУРС' : '2D СХЕМА'}</span>
+            <span>{is3D ? (lang === 'uz' ? '3D KO‘RINISH' : '3D РАКУРС') : (lang === 'uz' ? '2D CHIZMA' : '2D СХЕМА')}</span>
           </button>
         </div>
       </div>
@@ -339,19 +339,19 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
 
             <div className="space-y-1.5 font-mono text-xs">
               <div className="flex justify-between text-[#8ea88a]">
-                <span>Сделок:</span>
+                <span>{lang === 'uz' ? 'Bitimlar soni:' : 'Сделок:'}</span>
                 <span className="text-white font-bold">
                   {regionsData[hoveredRegion]?.deals_count?.toLocaleString() || '0'}
                 </span>
               </div>
               <div className="flex justify-between text-[#8ea88a]">
-                <span>Оборот:</span>
+                <span>{lang === 'uz' ? 'Aylanma:' : 'Оборот:'}</span>
                 <span className="text-[#C8EA4A] font-bold">
-                  {regionsData[hoveredRegion]?.amount_mlrd ? `${regionsData[hoveredRegion]?.amount_mlrd.toLocaleString()} млрд` : '—'}
+                  {regionsData[hoveredRegion]?.amount_mlrd ? `${regionsData[hoveredRegion]?.amount_mlrd.toLocaleString()} ${lang === 'uz' ? 'mlrd' : 'млрд'}` : '—'}
                 </span>
               </div>
               <div className="flex justify-between text-[#8ea88a] pt-1 border-t border-[#1a2b1a]">
-                <span>Топ-товар:</span>
+                <span>{lang === 'uz' ? 'Yetakchi tovar:' : 'Топ-товар:'}</span>
                 <span className="text-white truncate max-w-[140px]" title={regionsData[hoveredRegion]?.top_commodity}>
                   {regionsData[hoveredRegion]?.top_commodity || '—'}
                 </span>
@@ -365,10 +365,10 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
       <div className="relative z-20 mt-2 pt-2 border-t border-[#1b2b1b] flex flex-wrap items-center justify-between text-[11px] font-mono text-[#7b9777]">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#C8EA4A]" />
-          <span>РЕСПУБЛИКА УЗБЕКИСТАН: 14 АДМИНИСТРАТИВНЫХ РЕГИОНОВ</span>
+          <span>{lang === 'uz' ? 'O‘ZBEKISTON RESPUBLIKASI: 14 TA HUDUD' : 'РЕСПУБЛИКА УЗБЕКИСТАН: 14 АДМИНИСТРАТИВНЫХ РЕГИОНОВ'}</span>
         </div>
         <div className="text-[10px] text-[#556952]">
-          Наведите или нажмите на регион для аналитики
+          {lang === 'uz' ? 'Batafsil tahlil uchun viloyat ustiga bosing' : 'Наведите или нажмите на регион для аналитики'}
         </div>
       </div>
     </div>

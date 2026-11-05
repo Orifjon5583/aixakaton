@@ -7,10 +7,10 @@ from typing import Dict, Any, Tuple, Optional
 from backend.app.models.schemas import QueryPlan
 from backend.app.db.connection import db_manager
 
-# Mandatory rejection phrases from TZ Section 7
+# Mandatory rejection phrases from TZ Section 7 with strict Anti-Hallucination guarantees
 MSG_NO_DATA = {
-    'uz': "Berilgan ma'lumotlar bazasida ushbu savolga javob topilmadi. Mavjud ma'lumotlar asosida aniq xulosa chiqarish imkoni yo‘q.",
-    'ru': "В предоставленной базе данных не найден ответ на данный вопрос. На основании имеющихся данных невозможно сделать точный вывод."
+    'uz': "Berilgan ma'lumotlar bazasida ushbu savolga javob topilmadi. Men o‘zimdan taxmin qila olmayman — faqat aniq faktik manbaga va tasdiqlangan birja ma'lumotlariga tayanaman.",
+    'ru': "В предоставленной базе данных не найден ответ на данный вопрос. Я не могу делать предположения или отвечать от себя — я опираюсь исключительно на точные фактические данные биржи."
 }
 
 MSG_COLUMN_NOT_FOUND = {

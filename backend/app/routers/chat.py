@@ -83,21 +83,21 @@ async def chat_endpoint(req: ChatRequest):
     if not db_res['success'] or not db_res['rows']:
         if plan.filters.company_name:
             no_data_msg = (
-                f"Berilgan datasetda {plan.filters.company_name} bilan tuzilgan bitimlar haqida ma'lumot topilmadi."
+                f"Berilgan datasetda {plan.filters.company_name} bilan tuzilgan bitimlar haqida ma'lumot topilmadi. Men o‘zimdan taxmin qila olmayman — faqat aniq faktik manbaga va tasdiqlangan birja ma'lumotlariga tayanaman."
                 if lang == 'uz' else
-                f"В предоставленном наборе данных информация о сделках с {plan.filters.company_name} не найдена."
+                f"В предоставленном наборе данных информация о сделках с {plan.filters.company_name} не найдена. Я не могу делать предположения или отвечать от себя — я опираюсь исключительно на точные фактические данные биржи."
             )
         elif plan.filters.region:
             no_data_msg = (
-                f"Berilgan datasetda {plan.filters.region} bo'yicha bitimlar topilmadi."
+                f"Berilgan datasetda {plan.filters.region} bo'yicha bitimlar topilmadi. Men o‘zimdan taxmin qila olmayman — faqat aniq faktik manbaga va tasdiqlangan birja ma'lumotlariga tayanaman."
                 if lang == 'uz' else
-                f"В предоставленном наборе данных информация о сделках по региону '{plan.filters.region}' не найдена."
+                f"В предоставленном наборе данных информация о сделках по региону '{plan.filters.region}' не найдена. Я не могу делать предположения или отвечать от себя — я опираюсь исключительно на точные фактические данные биржи."
             )
         elif plan.filters.product_name:
             no_data_msg = (
-                f"Berilgan datasetda '{plan.filters.product_name}' tovari bo'yicha bitimlar topilmadi."
+                f"Berilgan datasetda '{plan.filters.product_name}' tovari bo'yicha bitimlar topilmadi. Men o‘zimdan taxmin qila olmayman — faqat aniq faktik manbaga va tasdiqlangan birja ma'lumotlariga tayanaman."
                 if lang == 'uz' else
-                f"В предоставленном наборе данных сделки по товару '{plan.filters.product_name}' не найдены."
+                f"В предоставленном наборе данных сделки по товару '{plan.filters.product_name}' не найдены. Я не могу делать предположения или отвечать от себя — я опираюсь исключительно на точные фактические данные биржи."
             )
         else:
             no_data_msg = MSG_NO_DATA[lang]

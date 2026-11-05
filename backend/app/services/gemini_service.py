@@ -140,6 +140,67 @@ class GeminiService:
         q_lower = normalize_text(question)
         filters = FilterCondition()
 
+        # Check greetings
+        greetings_uz = ['salom', 'assalomu alaykum', 'assalom aleykum', 'qalesiz', 'qalaysiz', 'ishlar qalay']
+        greetings_ru = ['привет', 'здравствуйте', 'добрый день', 'добрый вечер', 'как дела']
+        clean_q = re.sub(r'[^\w\s]', '', q_lower).strip()
+        if clean_q in greetings_uz or any(clean_q.startswith(g) and len(clean_q.split()) <= 3 for g in greetings_uz):
+            return QueryPlan(
+                query_type='OUT_OF_SCOPE',
+                is_out_of_scope=True,
+                out_of_scope_reason=(
+                    "Assalomu alaykum! Men UZEX AI Analyst — O‘zbekiston tovar-xom ashyo birjasi spot bitimlari (2022–2026) bo‘yicha rasmiy AI tahlilchiman. "
+                    "500 000 ta birja bitimi bo‘yicha istalgan tahliliy savolingizni berishingiz mumkin (masalan: tovarlar narxlari, yetakchi korxonalar reytingi yoki savdo hajmlari)."
+                ),
+                reasoning="Foydalanuvchi salomlashdi."
+            )
+        if clean_q in greetings_ru or any(clean_q.startswith(g) and len(clean_q.split()) <= 3 for g in greetings_ru):
+            return QueryPlan(
+                query_type='OUT_OF_SCOPE',
+                is_out_of_scope=True,
+                out_of_scope_reason=(
+                    "Здравствуйте! Я UZEX AI Analyst — официальный AI аналитик биржевых спот-торгов УзРТСБ (2022–2026 гг.). "
+                    "Вы можете задать любой аналитический вопрос по 500 000 биржевым сделкам (например: лидеры продаж, объемы товаров, сравнение периодов или цены)."
+                ),
+                reasoning="Приветствие пользователя."
+            )
+
+        # Check adversarial prompts asking to guess, speculate, fabricate, or answer from self
+        speculation_triggers = [
+            r'o[\'ʻʼ`]zingdan\s+(?:kelib\s+chiqib|bilib|kelib|qo[\'ʻʼ`]shib)',
+            r'o[\'ʻʼ`]zing\s+(?:o[\'ʻʼ`]ylab\s+top|taxmin\s+qil|o[\'ʻʼ`]ylab)',
+            r'taxmin\s+(?:qil|qilib|qilsang|qilaver|aytaver)',
+            r'faraz\s+(?:qil|qilib|qilsang)',
+            r'o[\'ʻʼ`]ylab\s+top',
+            r'uydir(?:ma)?',
+            r'yolg[\'ʻʼ`]on\s+(?:gapir|tuz|yoz)',
+            r'bazada\s+yo[\'ʻʼ`]q\s+bo[\'ʻʼ`]lsa\s+ham',
+            r'o[\'ʻʼ`]zingcha\s+javob\s+ber',
+            r'ответь\s+от\s+себя',
+            r'от\s+себя',
+            r'придумай',
+            r'сочини',
+            r'предположи',
+            r'угадай',
+            r'сделай\s+предположение',
+            r'если\s+нет\s+в\s+базе',
+            r'наугад',
+            r'выдумай',
+        ]
+        has_speculation = any(re.search(pat, q_lower) for pat in speculation_triggers)
+        if has_speculation and not any(k in q_lower for k in COMMODITY_MAPPINGS) and not re.findall(r'\b(BK\d{3})\b', question, re.IGNORECASE) and not re.findall(r'\b(\d{9})\b', question):
+            reason = (
+                "Berilgan ma'lumotlar bazasida ushbu savol bo‘yicha ma'lumot topilmadi. Men o‘zimdan taxmin qila olmayman yoki uydirma ma'lumot bera olmayman — faqat aniq faktik manbaga va tasdiqlangan birja ma'lumotlariga tayanaman."
+                if lang == 'uz' else
+                "В предоставленной базе данных информация по данному вопросу не найдена. Я не могу делать предположения или отвечать от себя — я опираюсь исключительно на точные фактические данные биржи."
+            )
+            return QueryPlan(
+                query_type='OUT_OF_SCOPE',
+                is_out_of_scope=True,
+                out_of_scope_reason=reason,
+                reasoning="Taxmin qilish yoki uydirma ma'lumot talab qiluvchi so'rov rad etildi."
+            )
+
         # Check explicit subject / entity non-existence (e.g. Mars sayyorasidagi kompaniyalar, Parij shahridagi)
         if req.subject_not_found and req.not_found_reason:
             return QueryPlan(

@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Space Grotesk', Inter, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: #070B07;
+  color: #E6ECE0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  selection-background-color: #C8EA4A;
+  selection-color: #070B07;
+}
+
+::selection {
+  background: #C8EA4A;
+  color: #070B07;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(7, 11, 7, 0.9);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(200, 234, 74, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 234, 74, 0.7);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(200, 234, 74, 0.2), inset 0 0 15px rgba(200, 234, 74, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(200, 234, 74, 0.45), inset 0 0 25px rgba(200, 234, 74, 0.18);
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+.animate-ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker 40s linear infinite;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Observatory Theme Panels */
+.glass-panel {
+  background: rgba(12, 19, 12, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 234, 74, 0.12);
+}
+
+.glass-panel-glow {
+  background: rgba(14, 23, 14, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(200, 234, 74, 0.28);
+  box-shadow: 0 0 35px -8px rgba(200, 234, 74, 0.2);
+}
+
+.glass-input {
+  background: rgba(16, 26, 16, 0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(200, 234, 74, 0.18);
+}
+.glass-input:focus {
+  border-color: rgba(200, 234, 74, 0.7);
+  box-shadow: 0 0 25px -4px rgba(200, 234, 74, 0.35);
+}

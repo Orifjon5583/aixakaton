@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  uzex-analyst:
+    build: .
+    container_name: uzex-ai-analyst
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=gemini-2.5-flash
+    volumes:
+      - ./db:/app/db
+      - ./uploads:/app/uploads
+    restart: unless-stopped

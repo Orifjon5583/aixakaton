@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, BASE_DIR)
 
-from backend.app.routers import chat, analytics, dataset_admin, health
+from backend.app.routers import chat, analytics, dataset_admin, health, history
 
 app = FastAPI(
     title="UZEX AI Analyst",
@@ -36,6 +36,7 @@ app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(analytics.router)
 app.include_router(dataset_admin.router)
+app.include_router(history.router)
 
 # Serve React static frontend if built
 FRONTEND_DIST = os.path.join(BASE_DIR, "frontend", "dist")

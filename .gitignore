@@ -25,6 +25,7 @@ yarn-error.log*
 *.tmp
 db/*.wal
 db/*.tmp
+db/history.db
 
 # Scratch
 scratch/

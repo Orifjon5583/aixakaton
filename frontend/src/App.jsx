@@ -17,6 +17,7 @@ import UzbekistanMap from './components/UzbekistanMap';
 import MarketCharts from './components/MarketCharts';
 import DealRegistryTable from './components/DealRegistryTable';
 import DealPassportModal from './components/DealPassportModal';
+import QueryHistoryTab from './components/QueryHistoryTab';
 import { soundManager } from './components/SoundEffects';
 
 export default function App() {
@@ -38,14 +39,29 @@ export default function App() {
     ? "Assalomu alaykum! Men UZEX AI Analyst — O‘zbekiston tovar-xom ashyo birjasi spot bitimlari bo‘yicha rasmiy AI tahlilchi agentman. 500 000 ta birja bitimi (2022–2026) bo‘yicha istalgan savolingizni bering. Har bir javob DuckDB orqali 100% faktik hisoblanadi va SQL dalili bilan tasdiqlanadi."
     : "Здравствуйте! Я UZEX AI Analyst — официальный AI агент-аналитик биржевых спот-торгов УзРТСБ. Задайте любой вопрос по 500 000 сделкам (2022–2026 гг.). Каждый ответ на 100% рассчитывается через DuckDB SQL с подтвержденным источником.";
 
-  const [history, setHistory] = useState([
-    {
-      role: 'assistant',
-      content: initialGreeting,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('uzex_chat_history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [
+      {
+        role: 'assistant',
+        content: initialGreeting,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ];
+  });
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('uzex_chat_history', JSON.stringify(history));
+    } catch (e) {}
+  }, [history]);
 
   useEffect(() => {
     fetchStats(selectedYear);
@@ -202,8 +218,9 @@ export default function App() {
           <nav className="hidden md:flex items-center p-1 rounded-xl bg-[#0e170e] border border-[#1f331f]">
             {[
               { id: 'observatory', label: lang === 'uz' ? 'Kuzatuv' : 'Обсерватория', icon: Compass },
-              { id: 'deals', label: lang === 'uz' ? 'Bitimlar reyestri' : 'Реестр сделок', icon: Table },
+              { id: 'deals', label: lang === 'uz' ? 'Bitimlar' : 'Реестр сделок', icon: Table },
               { id: 'chat', label: lang === 'uz' ? 'AI Tahlilchi' : 'AI-Аналитик', icon: Bot },
+              { id: 'history', label: lang === 'uz' ? 'Tarix' : 'История', icon: Clock },
               { id: 'dataset', label: lang === 'uz' ? 'Dataset' : 'Датасет', icon: Database },
               { id: 'about', label: lang === 'uz' ? 'Loyiha' : 'О проекте', icon: Info },
             ].map(tab => {
@@ -631,7 +648,22 @@ export default function App() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 4: DATASET & SCHEMA ADMIN                                 */}
+        {/* TAB 4: QUERY HISTORY AUDIT LOG                                 */}
+        {/* ============================================================== */}
+        {activeTab === 'history' && (
+          <div className="animate-fadeIn">
+            <QueryHistoryTab
+              lang={lang}
+              onRerunQuery={(q) => {
+                setActiveTab('chat');
+                handleSend(q);
+              }}
+            />
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* TAB 5: DATASET & SCHEMA ADMIN                                 */}
         {/* ============================================================== */}
         {activeTab === 'dataset' && (
           <div className="animate-fadeIn">

@@ -12,6 +12,7 @@ from backend.app.services.gemini_service import gemini_service
 from backend.app.validators.query_validator import query_validator, MSG_NO_DATA
 from backend.app.services.sql_compiler import sql_compiler
 from backend.app.db.connection import db_manager
+from backend.app.services.history_service import history_service
 
 router = APIRouter(prefix="/api", tags=["Chat"])
 
@@ -53,6 +54,15 @@ async def chat_endpoint(req: ChatRequest):
             filters_applied=plan.filters.model_dump(exclude_none=True),
             row_count=0,
             data_source="UZEX Dataset (Nol natija / Rad etildi)"
+        )
+        history_service.log_query(
+            question=req.message,
+            detected_lang=lang,
+            answer=rejection_reason or MSG_NO_DATA[lang],
+            executed_sql=None,
+            execution_time_ms=exec_ms,
+            status='out_of_scope',
+            row_count=0
         )
         return ChatResponse(
             answer=rejection_reason or MSG_NO_DATA[lang],
@@ -103,6 +113,15 @@ async def chat_endpoint(req: ChatRequest):
             row_count=0,
             data_source="DuckDB Analytical Engine"
         )
+        history_service.log_query(
+            question=req.message,
+            detected_lang=lang,
+            answer=rejection_reason or MSG_NO_DATA[lang],
+            executed_sql=None,
+            execution_time_ms=exec_ms,
+            status='out_of_scope',
+            row_count=0
+        )
         return ChatResponse(
             answer=no_data_msg,
             provenance=provenance,
@@ -148,6 +167,16 @@ async def chat_endpoint(req: ChatRequest):
         filters_applied=plan.filters.model_dump(exclude_none=True),
         row_count=db_res['row_count'],
         data_source="UZEX Spot Deals Dataset (2022-2026)"
+    )
+
+    history_service.log_query(
+        question=req.message,
+        detected_lang=lang,
+        answer=validated_answer,
+        executed_sql=sql,
+        execution_time_ms=exec_ms,
+        status='success',
+        row_count=db_res['row_count']
     )
 
     return ChatResponse(

@@ -1,53 +1,54 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { soundEffects } from './SoundEffects';
 
-// Accurate geographic coordinates for the 14 administrative regions of Uzbekistan
-// Scaled to a 1000x550 canvas coordinate space
+// Mathematically calibrated GPS coordinates for Uzbekistan's 14 regions
+// Screen coordinate space: 1000 x 540 (Horizontal East-West layout)
 const REGIONS_COORDINATES = {
-  'Qoraqalpog‘iston Respublikasi': { x: 175, y: 175, label: 'Нукус / Қорақалпоғистон', short: 'ККР', depth: 15 },
-  'Xorazm viloyati': { x: 285, y: 255, label: 'Урганч / Хоразм', short: 'ХОР', depth: 20 },
-  'Navoiy viloyati': { x: 450, y: 220, label: 'Навоий вилояти', short: 'НАВ', depth: 25 },
-  'Buxoro viloyati': { x: 410, y: 310, label: 'Бухоро вилояти', short: 'БУХ', depth: 22 },
-  'Samarqand viloyati': { x: 540, y: 320, label: 'Самарқанд вилояти', short: 'САМ', depth: 30 },
-  'Qashqadaryo viloyati': { x: 535, y: 405, label: 'Қарши / Қашқадарё', short: 'ҚАШ', depth: 26 },
-  'Surxondaryo viloyati': { x: 625, y: 465, label: 'Термиз / Сурхондарё', short: 'СУР', depth: 28 },
-  'Jizzax viloyati': { x: 615, y: 275, label: 'Жиззах виloyati', short: 'ЖИЗ', depth: 32 },
-  'Sirdaryo viloyati': { x: 675, y: 250, label: 'Гулистон / Сирдарё', short: 'СИР', depth: 35 },
-  'Toshkent viloyati': { x: 735, y: 200, label: 'Тошкент вилояти', short: 'ТАШ.В', depth: 40 },
-  'Toshkent shahri': { x: 750, y: 170, label: 'Тошкент шаҳри (Пойтахт)', short: 'ТОШКЕНТ', isCapital: true, depth: 45 },
-  'Namangan viloyati': { x: 825, y: 185, label: 'Наманган вилояти', short: 'НАМ', depth: 42 },
-  'Farg‘ona viloyati': { x: 835, y: 255, label: 'Фарғона вилояти', short: 'ФАР', depth: 38 },
-  'Andijon viloyati': { x: 895, y: 215, label: 'Андижон вилояти', short: 'АНД', depth: 40 },
+  'Qoraqalpog‘iston Respublikasi': { x: 230, y: 175, label: 'Нукус / Қорақалпоғистон', short: 'ККР' },
+  'Xorazm viloyati': { x: 300, y: 245, label: 'Урганч / Хоразм', short: 'ХОР' },
+  'Buxoro viloyati': { x: 480, y: 330, label: 'Бухоро вилояти', short: 'БУХ' },
+  'Navoiy viloyati': { x: 530, y: 270, label: 'Навоий вилояти', short: 'НАВ' },
+  'Samarqand viloyati': { x: 615, y: 335, label: 'Самарқанд вилояти', short: 'САМ' },
+  'Qashqadaryo viloyati': { x: 565, y: 385, label: 'Қарши / Қашқадарё', short: 'ҚАШ' },
+  'Surxondaryo viloyati': { x: 645, y: 465, label: 'Термиз / Сурхондарё', short: 'СУР' },
+  'Jizzax viloyati': { x: 665, y: 310, label: 'Жиззах вилояти', short: 'ЖИЗ' },
+  'Sirdaryo viloyati': { x: 710, y: 290, label: 'Гулистон / Сирдарё', short: 'СИР' },
+  'Toshkent viloyati': { x: 745, y: 245, label: 'Тошкент вилояти', short: 'ТАШ.В' },
+  'Toshkent shahri': { x: 755, y: 225, label: 'Тошкент шаҳри (Пойтахт)', short: 'ТОШКЕНТ', isCapital: true },
+  'Namangan viloyati': { x: 845, y: 245, label: 'Наманган вилояти', short: 'НАМ' },
+  'Farg‘ona viloyati': { x: 855, y: 295, label: 'Фарғона вилояти', short: 'ФАР' },
+  'Andijon viloyati': { x: 895, y: 270, label: 'Андижон вилояти', short: 'АНД' },
 };
 
-// Accurate geographic contour of the Republic of Uzbekistan
-const UZBEKISTAN_CONTOUR_PATH = `
-  M 75 140
-  C 110 95, 200 85, 270 95
-  C 320 102, 360 120, 395 140
-  C 435 125, 490 145, 530 170
-  C 570 195, 620 205, 660 185
-  C 700 165, 735 140, 770 150
-  C 805 160, 850 165, 880 180
-  C 920 200, 955 220, 940 250
-  C 925 280, 875 295, 835 285
-  C 800 275, 780 250, 755 245
-  C 730 240, 710 260, 690 270
-  C 670 280, 650 320, 650 360
-  C 650 400, 655 450, 640 495
-  C 625 540, 590 520, 570 475
-  C 555 440, 520 430, 480 395
-  C 440 360, 390 350, 350 330
-  C 310 310, 275 320, 250 305
-  C 225 290, 180 280, 140 260
-  C 100 240, 65 210, 60 175
+// Geographically accurate boundary polygon of Uzbekistan (Horizontal 1000x540)
+const UZBEKISTAN_BORDER_PATH = `
+  M 75 80
+  C 120 75, 200 65, 270 70
+  C 320 75, 360 90, 420 120
+  C 480 150, 540 180, 600 200
+  C 640 210, 680 180, 715 150
+  C 740 130, 765 140, 785 160
+  C 810 185, 835 220, 860 210
+  C 890 200, 920 230, 935 265
+  C 945 290, 930 310, 905 320
+  C 870 335, 840 330, 810 310
+  C 785 295, 765 285, 740 280
+  C 715 280, 690 310, 675 330
+  C 660 350, 660 390, 665 435
+  C 670 470, 650 500, 630 495
+  C 605 485, 590 445, 570 415
+  C 550 395, 510 380, 465 375
+  C 420 370, 375 350, 335 325
+  C 295 305, 265 300, 240 285
+  C 200 260, 160 245, 120 230
+  C 85 215, 70 170, 68 125
   Z
 `;
 
 export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedRegion }) {
   const [is3D, setIs3D] = useState(true);
-  const [isRotating, setIsRotating] = useState(true);
-  const [rotAngle, setRotAngle] = useState(0);
+  const [isAutoTilting, setIsAutoTilting] = useState(true);
+  const [tiltX, setTiltX] = useState(45); // X-axis tilt (pitch) in degrees
   const [tradeFlows, setTradeFlows] = useState([]);
   const [regionsData, setRegionsData] = useState({});
   const [hoveredRegion, setHoveredRegion] = useState(null);
@@ -55,9 +56,10 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
 
   // Drag interaction state
   const isDragging = useRef(false);
-  const startX = useRef(0);
-  const startRot = useRef(0);
+  const startY = useRef(0);
+  const startTilt = useRef(45);
   const animFrameId = useRef(null);
+  const tiltTimer = useRef(0);
 
   // Fetch trade flows and regional stats
   useEffect(() => {
@@ -89,43 +91,48 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
     return () => { isMounted = false; };
   }, [year]);
 
-  // Continuous smooth 3D rotation loop
+  // Smooth continuous rotation/tilting along the X-AXIS (Pitch oscillation)
   useEffect(() => {
-    const rotate = () => {
-      if (isRotating && !isDragging.current && is3D) {
-        setRotAngle(prev => (prev + 0.35) % 360);
+    const loop = () => {
+      if (isAutoTilting && !isDragging.current && is3D) {
+        tiltTimer.current += 0.025;
+        // Smooth sine wave between 28° and 56° along the X-AXIS
+        const newTilt = 42 + 14 * Math.sin(tiltTimer.current);
+        setTiltX(newTilt);
       }
-      animFrameId.current = requestAnimationFrame(rotate);
+      animFrameId.current = requestAnimationFrame(loop);
     };
 
-    animFrameId.current = requestAnimationFrame(rotate);
+    animFrameId.current = requestAnimationFrame(loop);
     return () => {
       if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
     };
-  }, [isRotating, is3D]);
+  }, [isAutoTilting, is3D]);
 
-  // Mouse / Touch drag to spin
+  // Mouse / Touch Drag to Tilt along X-AXIS
   const handleMouseDown = (e) => {
     if (!is3D) return;
     isDragging.current = true;
-    startX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    startRot.current = rotAngle;
+    startY.current = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    startTilt.current = tiltX;
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging.current || !is3D) return;
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    const delta = (clientX - startX.current) * 0.6;
-    setRotAngle((startRot.current + delta) % 360);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    const deltaY = (startY.current - clientY) * 0.4;
+    // Clamp tilt between 15° and 65°
+    const clamped = Math.max(15, Math.min(65, startTilt.current + deltaY));
+    setTiltX(clamped);
   };
 
   const handleMouseUp = () => {
     isDragging.current = false;
   };
 
-  const toggleRotation = () => {
+  const toggleAutoTilt = () => {
     soundEffects.playToggle();
-    setIsRotating(!isRotating);
+    setIsAutoTilting(!isAutoTilting);
   };
 
   const togglePerspective = () => {
@@ -133,9 +140,9 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
     setIs3D(!is3D);
   };
 
-  const resetRotation = () => {
+  const resetTilt = (val = 45) => {
     soundEffects.playClick();
-    setRotAngle(0);
+    setTiltX(val);
   };
 
   return (
@@ -146,16 +153,16 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
       onMouseUp={handleMouseUp}
       onTouchEnd={handleMouseUp}
     >
-      {/* Background Matrix Grid Pattern */}
+      {/* Background Matrix Grid */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-25"
+        className="absolute inset-0 pointer-events-none opacity-20"
         style={{
           backgroundImage: `
-            radial-gradient(#C8EA4A 1.2px, transparent 1.2px),
-            linear-gradient(to right, rgba(200, 234, 74, 0.06) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(200, 234, 74, 0.06) 1px, transparent 1px)
+            radial-gradient(#C8EA4A 1px, transparent 1px),
+            linear-gradient(to right, rgba(200, 234, 74, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(200, 234, 74, 0.05) 1px, transparent 1px)
           `,
-          backgroundSize: '28px 28px',
+          backgroundSize: '24px 24px',
         }}
       />
 
@@ -171,23 +178,22 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
           </span>
         </div>
 
-        {/* View & Rotation Controls */}
+        {/* View & Tilt Controls */}
         <div className="flex items-center gap-2">
-          {/* Rotation Toggle Button */}
+          {/* Auto-Tilt along X Axis */}
           <button
-            onClick={toggleRotation}
+            onClick={toggleAutoTilt}
             className={`px-3 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 ${
-              isRotating
+              isAutoTilting
                 ? 'bg-[#182a18] border border-[#C8EA4A]/50 text-[#C8EA4A]'
                 : 'bg-[#121c12] border border-[#263a26] text-[#6e886b]'
             }`}
-            title="Авто-вращение платформы"
+            title="Автоматическое 3D-колебание по оси X"
           >
-            <span className={isRotating ? 'animate-spin text-sm' : 'text-sm'}>🔄</span>
-            <span>{isRotating ? 'ВРАЩЕНИЕ: ВКЛ' : 'ПАУЗА'}</span>
+            <span>{isAutoTilting ? '🔄 НАКЛОН X: ВКЛ' : 'НАКЛОН X: ПАУЗА'}</span>
           </button>
 
-          {/* 3D / 2D Perspective Toggle */}
+          {/* Perspective Switcher */}
           <button
             onClick={togglePerspective}
             className={`px-3 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 ${
@@ -201,72 +207,62 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
 
           {is3D && (
             <button
-              onClick={resetRotation}
-              className="p-1 px-2 rounded text-[11px] font-mono bg-[#111c11] text-[#708c6d] hover:text-white border border-[#203220]"
-              title="Сброс ракурса"
+              onClick={() => resetTilt(45)}
+              className="p-1 px-2.5 rounded text-[11px] font-mono bg-[#111c11] text-[#708c6d] hover:text-white border border-[#203220]"
+              title="Сброс на 45°"
             >
-              СБРОС
+              45°
             </button>
           )}
         </div>
       </div>
 
-      {/* Interactive 3D Turntable Stage Container */}
+      {/* 3D Isometric View Stage */}
       <div 
-        className="relative w-full h-[380px] sm:h-[480px] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
+        className="relative w-full h-[380px] sm:h-[460px] flex items-center justify-center cursor-ns-resize overflow-hidden"
         style={{
-          perspective: '1300px',
+          perspective: '1100px',
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
       >
-        {/* Holographic 3D Turntable Island */}
+        {/* Holographic Island Container - ROTATES ONLY ALONG X-AXIS (No side flipping!) */}
         <div 
           className="relative w-full h-full max-w-[960px] flex items-center justify-center origin-center"
           style={{
             transform: is3D 
-              ? `rotateX(42deg) rotateZ(-6deg) rotateY(${rotAngle}deg) scale(0.95)` 
-              : 'rotateX(0deg) rotateZ(0deg) rotateY(0deg) scale(1)',
+              ? `rotateX(${tiltX}deg) translateY(${tiltX * 0.4}px) scale(0.96)` 
+              : 'rotateX(0deg) translateY(0) scale(1)',
             transformStyle: 'preserve-3d',
-            transition: isDragging.current ? 'none' : 'transform 0.1s linear',
+            transition: isDragging.current ? 'none' : 'transform 0.15s ease-out',
           }}
         >
-          {/* Ground Reflection Radar Rings */}
+          {/* Subtle Base Shadow Layer for 3D Volume */}
           {is3D && (
             <div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none -z-20"
-              style={{ transform: 'translateZ(-50px)' }}
-            >
-              <div className="w-[780px] h-[480px] rounded-full border border-[#C8EA4A]/10 animate-pulse" />
-              <div className="absolute w-[620px] h-[360px] rounded-full border border-[#C8EA4A]/15" />
-              <div className="absolute w-[440px] h-[240px] rounded-full border border-[#C8EA4A]/20" />
-            </div>
+              className="absolute inset-0 bg-[#040804]/90 rounded-3xl blur-2xl -z-20"
+              style={{ transform: 'translateZ(-40px) translateY(35px)' }}
+            />
           )}
 
-          {/* SVG Map Container */}
+          {/* SVG Map of Uzbekistan */}
           <svg
-            viewBox="0 0 1000 550"
+            viewBox="0 0 1000 540"
             className="w-full h-full overflow-visible"
             style={{ 
-              filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.9))',
+              filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.85))',
               transformStyle: 'preserve-3d',
             }}
           >
             <defs>
-              {/* Gradients */}
-              <linearGradient id="territoryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#122012" stopOpacity="0.95" />
-                <stop offset="50%" stopColor="#0F1B0F" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#0B140B" stopOpacity="0.95" />
+              <linearGradient id="uzTerritoryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#132213" stopOpacity="0.95" />
+                <stop offset="60%" stopColor="#0E1A0E" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#081008" stopOpacity="0.95" />
               </linearGradient>
 
-              <linearGradient id="baseExtrusion" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#C8EA4A" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#050805" stopOpacity="0.9" />
-              </linearGradient>
-
-              <filter id="mapGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+              <filter id="uzGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -274,69 +270,56 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
               </filter>
             </defs>
 
-            {/* Layer 1: 3D Deep Base Shadow (gives thick island volume) */}
+            {/* 3D Extrusion Layer (Thick base edge) */}
             {is3D && (
               <path
-                d={UZBEKISTAN_CONTOUR_PATH}
-                fill="#050905"
-                stroke="#162616"
-                strokeWidth="4"
-                transform="translate(0, 22)"
-                opacity="0.8"
+                d={UZBEKISTAN_BORDER_PATH}
+                fill="#070D07"
+                stroke="#1B2F1B"
+                strokeWidth="3"
+                transform="translate(0, 14)"
+                opacity="0.85"
               />
             )}
 
-            {/* Layer 2: Middle Extrusion Shelf */}
-            {is3D && (
-              <path
-                d={UZBEKISTAN_CONTOUR_PATH}
-                fill="#0C170C"
-                stroke="#2a452a"
-                strokeWidth="2"
-                transform="translate(0, 10)"
-                opacity="0.9"
-              />
-            )}
-
-            {/* Layer 3: Realistic Geographic Uzbekistan Territory Surface */}
+            {/* Main Accurate Geographic Contour */}
             <path
-              d={UZBEKISTAN_CONTOUR_PATH}
-              fill="url(#territoryGrad)"
+              d={UZBEKISTAN_BORDER_PATH}
+              fill="url(#uzTerritoryGrad)"
               stroke="#C8EA4A"
-              strokeWidth="2"
-              strokeDasharray={is3D ? "none" : "none"}
-              filter="url(#mapGlow)"
+              strokeWidth="2.2"
+              filter="url(#uzGlow)"
               className="transition-all duration-300"
             />
 
-            {/* Interior Regional Topography Arcs (Topographical relief lines) */}
-            <g opacity="0.18" stroke="#C8EA4A" strokeWidth="1" fill="none">
-              <path d="M 120 180 Q 220 140 330 200 Q 420 250 510 220" />
-              <path d="M 280 270 Q 380 320 480 270 Q 580 310 680 240" />
-              <path d="M 440 330 Q 530 400 620 440" />
-              <path d="M 640 280 Q 730 220 840 220 Q 890 240 920 230" />
+            {/* Regional Topography Guides (subtle relief curves) */}
+            <g opacity="0.2" stroke="#C8EA4A" strokeWidth="1" fill="none">
+              <path d="M 120 180 Q 230 150 340 210 Q 450 260 550 230" />
+              <path d="M 310 270 Q 420 330 520 280 Q 620 320 720 250" />
+              <path d="M 490 340 Q 570 410 650 450" />
+              <path d="M 660 290 Q 750 240 850 240 Q 900 260 925 250" />
             </g>
 
-            {/* Dynamic Animated Trade Arcs between Regions */}
+            {/* Animated Trade Arcs between Regions */}
             {tradeFlows.map((flow, index) => {
               const from = REGIONS_COORDINATES[flow.from_region];
               const to = REGIONS_COORDINATES[flow.to_region];
               if (!from || !to) return null;
 
-              // Arc mid-point with high elevation curve
+              // Arc mid-point with high 3D curved elevation
               const midX = (from.x + to.x) / 2;
-              const midY = (from.y + to.y) / 2 - Math.min(100, Math.hypot(to.x - from.x, to.y - from.y) * 0.4);
+              const midY = (from.y + to.y) / 2 - Math.min(95, Math.hypot(to.x - from.x, to.y - from.y) * 0.38);
 
               const isHighlighted = activeArc === index || 
                 (hoveredRegion && (hoveredRegion === flow.from_region || hoveredRegion === flow.to_region));
 
               return (
                 <g key={`flow-${index}`} className="transition-all duration-300">
-                  {/* Arc Curve */}
+                  {/* Glowing Arc Curve */}
                   <path
                     d={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
                     fill="none"
-                    stroke={isHighlighted ? "#C8EA4A" : "rgba(200, 234, 74, 0.28)"}
+                    stroke={isHighlighted ? "#C8EA4A" : "rgba(200, 234, 74, 0.3)"}
                     strokeWidth={isHighlighted ? 2.8 : 1.4}
                     strokeLinecap="round"
                   />
@@ -353,7 +336,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
               );
             })}
 
-            {/* Region Node Hubs (Cities / Regional Capitals) */}
+            {/* Region Node Hubs */}
             {Object.entries(REGIONS_COORDINATES).map(([regName, coords]) => {
               const regData = regionsData[regName];
               const isHovered = hoveredRegion === regName;
@@ -376,7 +359,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                     if (onSelectRegion) onSelectRegion(regName);
                   }}
                 >
-                  {/* Capital / Major Hub Radiant Radar Pulsing Waves */}
+                  {/* Pulsing Radar Ring on Capital and Major Hubs */}
                   {(coords.isCapital || dealsCount > 7000) && (
                     <circle
                       r="18"
@@ -397,7 +380,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                     className="transition-all duration-200"
                   />
 
-                  {/* Center Node Core */}
+                  {/* Center Dot */}
                   <circle
                     r={coords.isCapital ? "5" : "3.5"}
                     fill={coords.isCapital ? "#FFFFFF" : (isHovered ? "#C8EA4A" : "#B2D858")}
@@ -461,11 +444,11 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
       <div className="relative z-20 mt-2 pt-2 border-t border-[#1b2b1b] flex flex-wrap items-center justify-between text-[11px] font-mono text-[#7b9777]">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#C8EA4A]" />
-          <span>3D ГЕОМЕТРИЯ: РЕСПУБЛИКА УЗБЕКИСТАН</span>
-          <span className="text-[#556952] hidden md:inline">| Вращайте мышью или пальцем</span>
+          <span>3D ПЕРСПЕКТИВА: ОСЬ X</span>
+          <span className="text-[#556952] hidden md:inline">| Двигайте мышью вверх/вниз для наклона</span>
         </div>
         <div className="text-[10px] text-[#C8EA4A]">
-          УГОЛ ОБЗОРА: {Math.round(rotAngle)}°
+          НАКЛОН ПО ОСИ X: {Math.round(tiltX)}°
         </div>
       </div>
     </div>

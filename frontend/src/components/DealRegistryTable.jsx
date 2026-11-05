@@ -82,20 +82,20 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
     <div className="bg-[#090E09] border border-[#203220] rounded-2xl p-5 shadow-2xl text-left select-none">
       
       {/* Header and Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#1b2b1b]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1b2b1b]">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-[#8aa587] uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-[#C8EA4A]" />
             <span>Официальный биржевой реестр ({year})</span>
           </div>
-          <h3 className="text-xl font-bold font-mono text-white mt-1">
+          <h3 className="text-lg sm:text-xl font-bold font-mono text-white mt-1">
             Оперативные спот-сделки UZEX
           </h3>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           {/* Search Box */}
-          <div className="relative">
+          <div className="relative flex-1 sm:w-72">
             <input
               type="text"
               placeholder="Поиск по товару, компании, ID..."
@@ -104,7 +104,7 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
                 setSearchTerm(e.target.value);
                 setPage(0);
               }}
-              className="w-64 sm:w-80 px-3 py-1.5 rounded-lg bg-[#111c11] border border-[#284028] text-xs font-mono text-white placeholder-[#5a7357] focus:outline-none focus:border-[#C8EA4A] transition-colors"
+              className="w-full px-3 py-1.5 rounded-lg bg-[#111c11] border border-[#284028] text-xs font-mono text-white placeholder-[#5a7357] focus:outline-none focus:border-[#C8EA4A] transition-colors"
             />
             {searchTerm && (
               <button
@@ -119,11 +119,16 @@ export default function DealRegistryTable({ year = 2026, onSelectDeal, initialFi
           {/* CSV Export Button */}
           <button
             onClick={exportRegistryCSV}
-            className="px-3 py-1.5 rounded-lg bg-[#162416] hover:bg-[#223622] border border-[#2c472c] text-xs font-mono text-[#C8EA4A] flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-[#162416] hover:bg-[#223622] border border-[#2c472c] text-xs font-mono text-[#C8EA4A] flex items-center justify-center gap-1.5 transition-colors"
           >
             <span>📥 Экспорт CSV</span>
           </button>
         </div>
+      </div>
+
+      <div className="text-[10px] text-[#556952] font-mono sm:hidden flex items-center justify-between mt-2">
+        <span>↔️ Jadvalni gorizontal suring</span>
+        <span>Jami: {filteredDeals.length} ta</span>
       </div>
 
       {/* Table Container */}

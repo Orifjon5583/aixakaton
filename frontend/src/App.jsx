@@ -183,37 +183,37 @@ export default function App() {
       />
 
       {/* Main Observatory Navigation Header */}
-      <header className="border-b border-[#1b2a1b] sticky top-0 z-40 bg-[#070B07]/85 backdrop-blur-2xl transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="border-b border-[#1b2a1b] sticky top-0 z-40 bg-[#070B07]/90 backdrop-blur-2xl transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
           
           {/* Logo & Status Badge */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <div className="relative group cursor-pointer" onClick={() => setActiveTab('observatory')}>
-              <div className="w-10 h-10 rounded-xl bg-[#121c12] border border-[#2c472c] flex items-center justify-center shadow-lg shadow-[#C8EA4A]/10 group-hover:border-[#C8EA4A] transition-colors">
-                <TrendingUp className="w-5 h-5 text-[#C8EA4A]" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#121c12] border border-[#2c472c] flex items-center justify-center shadow-lg shadow-[#C8EA4A]/10 group-hover:border-[#C8EA4A] transition-colors">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#C8EA4A]" />
               </div>
-              <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-2 w-2 sm:h-2.5 sm:w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C8EA4A] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C8EA4A]" />
+                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-[#C8EA4A]" />
               </span>
             </div>
 
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-base tracking-tight font-mono text-white">
-                  uzex <span className="text-[#C8EA4A] font-light">| OBSERVATORY</span>
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight font-mono text-white">
+                  uzex <span className="text-[#C8EA4A] font-light hidden xs:inline">| OBSERVATORY</span>
                 </span>
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#182718] text-[#C8EA4A] border border-[#2b442b]">
-                  DWH 2022–2026
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-[#182718] text-[#C8EA4A] border border-[#2b442b]">
+                  DWH
                 </span>
               </div>
-              <div className="text-[11px] font-mono text-[#7b9777] hidden sm:block">
+              <div className="text-[10px] sm:text-[11px] font-mono text-[#7b9777] hidden sm:block">
                 UZ / 41°18' N 69°14' E • 500 000 СПОТ-СДЕЛОК
               </div>
             </div>
           </div>
 
-          {/* Navigation Tabs */}
+          {/* Desktop Navigation Tabs */}
           <nav className="hidden md:flex items-center p-1 rounded-xl bg-[#0e170e] border border-[#1f331f]">
             {[
               { id: 'observatory', label: lang === 'uz' ? 'Kuzatuv' : 'Обсерватория', icon: Compass },
@@ -245,14 +245,14 @@ export default function App() {
           </nav>
 
           {/* Right Utility Controls: Language & Sound */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
             {/* Language Switcher */}
             <button
               onClick={() => {
                 soundManager.playClick();
                 setLang(lang === 'uz' ? 'ru' : 'uz');
               }}
-              className="px-2.5 py-1.5 rounded-lg bg-[#111c11] border border-[#233823] text-xs font-mono font-bold text-[#C8EA4A] hover:border-[#C8EA4A] flex items-center space-x-1.5 transition-colors"
+              className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-[#111c11] border border-[#233823] text-xs font-mono font-bold text-[#C8EA4A] hover:border-[#C8EA4A] flex items-center space-x-1 sm:space-x-1.5 transition-colors"
               title="Tilni o'zgartirish (UZ/RU)"
             >
               <Globe className="w-3.5 h-3.5" />
@@ -262,14 +262,14 @@ export default function App() {
             {/* Sound Toggle */}
             <button
               onClick={toggleSound}
-              className={`p-2 rounded-lg border transition-colors ${
+              className={`p-1.5 sm:p-2 rounded-lg border transition-colors ${
                 soundEnabled
                   ? 'bg-[#182718] border-[#2c472c] text-[#C8EA4A]'
                   : 'bg-[#101910] border-[#1e2f1e] text-[#556952]'
               }`}
               title={soundEnabled ? "Tovushlarni o'chirish" : "Tovushlarni yoqish"}
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
             </button>
           </div>
 
@@ -277,7 +277,7 @@ export default function App() {
       </header>
 
       {/* Main Body View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col space-y-6 relative z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 pb-24 md:pb-8 flex flex-col space-y-6 relative z-10">
 
         {/* ============================================================== */}
         {/* TAB 1: OBSERVATORY OVERVIEW (COMPETITOR MATCH & EXCEED)        */}
@@ -631,12 +631,12 @@ export default function App() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={lang === 'uz' ? "Savolingizni yozing (masalan: 2024-yilda eng ko'p sement sotgan 3 kompaniya)..." : "Введите ваш вопрос (например: топ-3 продавца сахара в 2026 году)..."}
-                className="w-full rounded-xl pl-4 pr-14 py-4 text-xs font-mono bg-[#111c11] border border-[#243a24] text-white placeholder-[#5a7357] focus:outline-none focus:border-[#C8EA4A] shadow-2xl"
+                className="w-full rounded-xl pl-3.5 pr-12 py-3 sm:py-4 text-xs font-mono bg-[#111c11] border border-[#243a24] text-white placeholder-[#5a7357] focus:outline-none focus:border-[#C8EA4A] shadow-2xl"
               />
               <button
                 type="submit"
                 disabled={!query.trim() || loading}
-                className="absolute right-2.5 p-2.5 rounded-lg bg-[#C8EA4A] hover:bg-[#d8ff54] disabled:opacity-30 text-[#070B07] transition font-bold"
+                className="absolute right-2 p-2 sm:p-2.5 rounded-lg bg-[#C8EA4A] hover:bg-[#d8ff54] disabled:opacity-30 text-[#070B07] transition font-bold"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -687,6 +687,52 @@ export default function App() {
           onClose={() => setSelectedProvenance(null)}
         />
       )}
+
+      {/* Modern Mobile Bottom Navigation Bar (PWA / App Style) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#070B07]/95 backdrop-blur-2xl border-t border-[#1b2a1b] px-2 py-1.5 flex items-center justify-around shadow-2xl">
+        {[
+          { id: 'observatory', label: lang === 'uz' ? 'Kuzatuv' : 'Обзор', icon: Compass },
+          { id: 'deals', label: lang === 'uz' ? 'Bitimlar' : 'Сделки', icon: Table },
+          { id: 'chat', label: lang === 'uz' ? 'AI Tahlil' : 'AI-Чат', icon: Bot, isAi: true },
+          { id: 'dataset', label: lang === 'uz' ? 'Dataset' : 'Датасет', icon: Database },
+          { id: 'about', label: lang === 'uz' ? 'Loyiha' : 'Инфо', icon: Info },
+        ].map(tab => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                soundManager.playClick();
+                setActiveTab(tab.id);
+              }}
+              className={`flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all relative ${
+                active
+                  ? 'text-[#C8EA4A]'
+                  : 'text-[#647f61] hover:text-[#95b392]'
+              }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all ${
+                active
+                  ? 'bg-[#C8EA4A]/15 text-[#C8EA4A]'
+                  : tab.isAi
+                    ? 'text-[#C8EA4A]'
+                    : ''
+              }`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className={`text-[10px] font-mono mt-0.5 tracking-tight ${
+                active ? 'font-bold text-[#C8EA4A]' : 'font-medium'
+              }`}>
+                {tab.label}
+              </span>
+              {active && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C8EA4A] mt-0.5 shadow-sm shadow-[#C8EA4A]" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
     </div>
   );

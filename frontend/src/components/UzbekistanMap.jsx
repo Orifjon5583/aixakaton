@@ -98,10 +98,11 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
 
       {/* Map Canvas Container */}
       <div 
-        className="relative w-full h-[380px] sm:h-[460px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out"
+        className="relative w-full h-[320px] sm:h-[460px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out"
         style={{
           perspective: '1200px',
         }}
+        onClick={() => setHoveredRegion(null)}
       >
         {/* Holographic Island Stage - STABLE & FIXED (NO ROTATION) */}
         <div 
@@ -261,6 +262,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                   onClick={(e) => {
                     e.stopPropagation();
                     soundEffects.playClick();
+                    setHoveredRegion(prev => prev === reg.id ? null : reg.id);
                     if (onSelectRegion) onSelectRegion(reg.id);
                   }}
                 >
@@ -309,16 +311,30 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
           </svg>
         </div>
 
-        {/* Dynamic Telemetry Tooltip when Hovering a Region */}
+        {/* Dynamic Telemetry Tooltip when Hovering/Tapping a Region */}
         {hoveredRegion && (
-          <div className="absolute top-4 right-4 z-30 w-72 bg-[#0C140C]/95 backdrop-blur-md border border-[#C8EA4A]/50 rounded-xl p-3.5 shadow-2xl text-left pointer-events-none animate-fadeIn">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-2 left-2 right-2 sm:bottom-auto sm:top-14 sm:right-4 sm:left-auto sm:w-72 z-30 bg-[#0C140C]/95 backdrop-blur-md border border-[#C8EA4A]/50 rounded-xl p-3 sm:p-3.5 shadow-2xl text-left animate-fadeIn"
+          >
             <div className="flex items-center justify-between border-b border-[#243824] pb-2 mb-2">
               <span className="text-[11px] font-mono text-[#C8EA4A] tracking-wider uppercase font-bold">
                 {UZBEKISTAN_REGIONS.find(r => r.id === hoveredRegion)?.label || hoveredRegion}
               </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#182718] text-[#8ea88a]">
-                {year}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#182718] text-[#8ea88a]">
+                  {year}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHoveredRegion(null);
+                  }}
+                  className="text-xs text-[#8ea88a] hover:text-white px-1.5 py-0.5 rounded bg-[#152415] border border-[#243a24]"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="space-y-1.5 font-mono text-xs">
@@ -352,7 +368,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
           <span>РЕСПУБЛИКА УЗБЕКИСТАН: 14 АДМИНИСТРАТИВНЫХ РЕГИОНОВ</span>
         </div>
         <div className="text-[10px] text-[#556952]">
-          Наведите на регион для просмотра аналитики
+          Наведите или нажмите на регион для аналитики
         </div>
       </div>
     </div>

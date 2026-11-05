@@ -396,7 +396,124 @@ class GeminiService:
                 return f"{years_str}общая сумма сделок составила {fmt_amt} сум ({trln} Трлн UZS)."
             return f"{years_str}bitimlarning umumiy qiymati {fmt_amt} so‘m ({trln} Trln so‘m) ni tashkil etdi."
 
-        # Case 5: Multiple records (Top list, grouping, comparison)
+        # Case 5: Two-year comparative analysis (e.g., comparing 2023 and 2024)
+        year_col = 'deal_year' if 'deal_year' in columns else ('year' if 'year' in columns else None)
+        if year_col and len(rows) == 2 and ('taqqos' in question.lower() or 'сравн' in question.lower() or plan.query_type == 'COMPARE_YEARS'):
+            r1 = dict(zip(columns, rows[0]))
+            r2 = dict(zip(columns, rows[1]))
+            try:
+                if int(r1[year_col]) > int(r2[year_col]):
+                    r1, r2 = r2, r1
+            except Exception:
+                pass
+
+            y1 = r1[year_col]
+            y2 = r2[year_col]
+
+            lines = []
+            if is_ru:
+                lines.append(f"📊 **Сравнение показателей за {y1} и {y2} годы:**\n")
+            else:
+                lines.append(f"📊 **{y1} va {y2}-yillar ko‘rsatkichlari taqqoslovi:**\n")
+
+            def render_compare_block(r, y, base_r=None):
+                b_lines = []
+                b_lines.append(f"• **{y} год:**" if is_ru else f"• **{y}-yil:**")
+                cnt = r.get('deals_count')
+                vol = r.get('total_volume') or r.get('volume_units')
+                amt = r.get('total_amount_uzs')
+
+                if cnt is not None:
+                    cnt_fmt = f"{int(cnt):,}".replace(",", " ")
+                    diff_str = ""
+                    if base_r and base_r.get('deals_count'):
+                        b_cnt = int(base_r.get('deals_count'))
+                        diff = int(cnt) - b_cnt
+                        pct = (diff / b_cnt * 100) if b_cnt else 0
+                        sign = "+" if diff >= 0 else ""
+                        diff_fmt = f"{diff:,}".replace(",", " ")
+                        diff_str = f" *({sign}{diff_fmt} / {sign}{pct:.1f}%)*"
+                    b_lines.append(f"  - Сделок: **{cnt_fmt}**{diff_str}" if is_ru else f"  - Bitimlar soni: **{cnt_fmt} ta**{diff_str}")
+
+                if vol is not None:
+                    vol_fmt = f"{float(vol):,.2f}".replace(",", " ") if isinstance(vol, float) else f"{int(vol):,}".replace(",", " ")
+                    diff_str = ""
+                    if base_r and (base_r.get('total_volume') or base_r.get('volume_units')):
+                        b_vol = float(base_r.get('total_volume') or base_r.get('volume_units'))
+                        diff = float(vol) - b_vol
+                        pct = (diff / b_vol * 100) if b_vol else 0
+                        sign = "+" if diff >= 0 else ""
+                        diff_str = f" *({sign}{pct:.1f}%)*"
+                    b_lines.append(f"  - Объем торгов: **{vol_fmt}**{diff_str}" if is_ru else f"  - Savdo hajmi: **{vol_fmt}**{diff_str}")
+
+                if amt is not None:
+                    amt_fmt = f"{float(amt):,.2f}".replace(",", " ")
+                    trln = round(float(amt) / 1e12, 2)
+                    diff_str = ""
+                    if base_r and base_r.get('total_amount_uzs'):
+                        b_amt = float(base_r.get('total_amount_uzs'))
+                        diff = float(amt) - b_amt
+                        pct = (diff / b_amt * 100) if b_amt else 0
+                        sign = "+" if diff >= 0 else ""
+                        diff_str = f" *({sign}{pct:.1f}%)*"
+                    b_lines.append(f"  - Общая сумма: **{amt_fmt} сум** ({trln} Трлн UZS){diff_str}" if is_ru else f"  - Jami qiymati: **{amt_fmt} so‘m** ({trln} Trln so‘m){diff_str}")
+
+                return b_lines
+
+            lines.extend(render_compare_block(r1, y1))
+            lines.append("")
+            lines.extend(render_compare_block(r2, y2, base_r=r1))
+            return "\n".join(lines)
+
+        # Case 6: Multiple records (Top list, grouping, general tables)
+        col_labels_ru = {
+            'deal_year': 'Год',
+            'year': 'Год',
+            'deals_count': 'Сделок',
+            'total_amount_uzs': 'Общая сумма',
+            'total_sold_uzs': 'Общая сумма',
+            'total_volume': 'Общий объем',
+            'volume_units': 'Объем',
+            'company_name': 'Компания',
+            'company_inn': 'ИНН',
+            'seller_name': 'Продавец',
+            'seller_inn': 'ИНН продавца',
+            'buyer_name': 'Покупатель',
+            'buyer_inn': 'ИНН покупателя',
+            'seller_region': 'Регион',
+            'region': 'Регион',
+            'product_name': 'Товар',
+            'avg_price_uzs': 'Средняя цена',
+            'unit_price': 'Цена',
+            'broker_code': 'Код брокера',
+            'name': 'Наименование',
+            'inn': 'ИНН',
+        }
+        col_labels_uz = {
+            'deal_year': 'Yil',
+            'year': 'Yil',
+            'deals_count': 'Bitimlar soni',
+            'total_amount_uzs': 'Jami summa',
+            'total_sold_uzs': 'Jami summa',
+            'total_volume': 'Umumiy hajm',
+            'volume_units': 'Hajm',
+            'company_name': 'Kompaniya',
+            'company_inn': 'STIR (INN)',
+            'seller_name': 'Sotuvchi',
+            'seller_inn': 'Sotuvchi STIR',
+            'buyer_name': 'Xaridor',
+            'buyer_inn': 'Xaridor STIR',
+            'seller_region': 'Hudud',
+            'region': 'Hudud',
+            'product_name': 'Tovar',
+            'avg_price_uzs': 'O‘rtacha narx',
+            'unit_price': 'Narx',
+            'broker_code': 'Broker kodi',
+            'name': 'Nomi',
+            'inn': 'STIR (INN)',
+        }
+        labels_map = col_labels_ru if is_ru else col_labels_uz
+
         lines = []
         if is_ru:
             lines.append(f"📋 {years_str}найдено записей: {len(rows)}:")
@@ -408,13 +525,19 @@ class GeminiService:
             details = []
             for k, v in r_dict.items():
                 if v is not None and str(v).strip() != '':
-                    if isinstance(v, float):
+                    if k in ('deal_year', 'year', 'start_year', 'end_year'):
+                        fmt_v = f"{v} год" if is_ru else f"{v}-yil"
+                    elif k in ('total_amount_uzs', 'total_sold_uzs', 'avg_price_uzs'):
+                        fmt_v = f"{float(v):,.2f}".replace(",", " ") + (" сум" if is_ru else " so‘m")
+                    elif k in ('deals_count',):
+                        fmt_v = f"{int(v):,}".replace(",", " ") + ("" if is_ru else " ta")
+                    elif isinstance(v, float):
                         fmt_v = f"{v:,.2f}".replace(",", " ")
                     elif isinstance(v, int):
                         fmt_v = f"{v:,}".replace(",", " ")
                     else:
                         fmt_v = str(v)
-                    clean_k = k.replace('_', ' ')
+                    clean_k = labels_map.get(k, k.replace('_', ' ').capitalize())
                     details.append(f"{clean_k}: {fmt_v}")
             lines.append(f"{idx}. " + " | ".join(details))
 

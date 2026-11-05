@@ -338,6 +338,39 @@ class GeminiService:
         if req.wants_deals_count and not req.wants_company:
             return QueryPlan(query_type='COUNT_DEALS', target_metric='deals_count', filters=filters)
 
+        # Check if question actually requested general stats or if it is just a vague command/input like "javob ber"
+        general_intent = any(w in q_lower for w in [
+            'statistika', 'umumiy', 'hisobot', 'jami', 'barcha', 'dinamika', 'tahlil', 'reyting',
+            'статистика', 'общая', 'отчет', 'всего', 'все годы', 'динамика', 'аналитика', 'рейтинг'
+        ])
+        
+        has_any_filter = bool(
+            filters.years or filters.product_name or filters.region or 
+            filters.company_name or filters.company_inn or filters.broker_code or
+            filters.deal_status or filters.contract_type
+        )
+
+        if not general_intent and not has_any_filter:
+            clarify_msg = (
+                "Qanday ma'lumot kerakligini aniqroq yozing. Masalan:\n"
+                "• *2024-yilda eng ko‘p sement sotgan 3 ta kompaniya?*\n"
+                "• *2022 va 2026-yillardagi bitimlar sonini taqqosla*\n"
+                "• *BK001 kodi qaysi brokerga tegishli?*\n"
+                "• *TOP-10 tovarlar reytingini ko‘rsat*"
+                if lang == 'uz' else
+                "Пожалуйста, укажите ваш вопрос точнее. Например:\n"
+                "• *Топ-3 продавца цемента в 2024 году?*\n"
+                "• *Сравни количество сделок за 2022 и 2026 годы*\n"
+                "• *Кому принадлежит код BK001?*\n"
+                "• *Покажи ТОП-10 биржевых товаров*"
+            )
+            return QueryPlan(
+                query_type='OUT_OF_SCOPE',
+                is_out_of_scope=True,
+                out_of_scope_reason=clarify_msg,
+                reasoning="Foydalanuvchi aniq savol bermadi. Maslahat beruvchi javob qaytarildi."
+            )
+
         return QueryPlan(query_type='GENERAL_STATS', filters=filters)
 
     def explain_results(self, question: str, plan: QueryPlan, sql: str, columns: list, rows: list, lang: str = 'uz') -> str:
@@ -391,6 +424,8 @@ class GeminiService:
                 years_str = f"{min(plan.filters.years)}–{max(plan.filters.years)}-yillar oralig'ida " if not is_ru else f"В период с {min(plan.filters.years)} по {max(plan.filters.years)} гг. "
             else:
                 years_str = f"{plan.filters.years[0]}-yilda " if not is_ru else f"В {plan.filters.years[0]} году "
+        elif plan.query_type == 'GENERAL_STATS':
+            years_str = "Barcha yillar (2022–2026) bo‘yicha " if not is_ru else "За весь период (2022–2026 гг.) "
 
         # Case 1: Broker Profile (checked first!)
         if len(rows) == 1 and 'broker_code' in columns:
@@ -531,6 +566,7 @@ class GeminiService:
             'deal_year': 'Год',
             'year': 'Год',
             'deals_count': 'Сделок',
+            'total_deals': 'Сделок',
             'total_amount_uzs': 'Общая сумма',
             'total_sold_uzs': 'Общая сумма',
             'total_volume': 'Общий объем',
@@ -554,6 +590,7 @@ class GeminiService:
             'deal_year': 'Yil',
             'year': 'Yil',
             'deals_count': 'Bitimlar soni',
+            'total_deals': 'Bitimlar soni',
             'total_amount_uzs': 'Jami summa',
             'total_sold_uzs': 'Jami summa',
             'total_volume': 'Umumiy hajm',
@@ -577,9 +614,17 @@ class GeminiService:
 
         lines = []
         if is_ru:
-            lines.append(f"📋 {years_str}найдено записей: {len(rows)}:")
+            if years_str.strip():
+                lines.append(f"📋 {years_str}найдено записей: {len(rows)}:")
+            else:
+                lines.append(f"📋 Найдено записей: {len(rows)}:")
         else:
-            lines.append(f"📋 {years_str}bo‘yicha {len(rows)} ta natija aniqlandi:")
+            if years_str.strip().endswith("bo‘yicha") or years_str.strip().endswith("bo'yicha"):
+                lines.append(f"📋 {years_str} {len(rows)} ta natija aniqlandi:")
+            elif years_str.strip():
+                lines.append(f"📋 {years_str}bo‘yicha {len(rows)} ta natija aniqlandi:")
+            else:
+                lines.append(f"📋 Jami {len(rows)} ta natija aniqlandi:")
 
         for idx, r in enumerate(rows[:10], 1):
             r_dict = dict(zip(columns, r))
@@ -590,7 +635,7 @@ class GeminiService:
                         fmt_v = f"{v} год" if is_ru else f"{v}-yil"
                     elif k in ('total_amount_uzs', 'total_sold_uzs', 'avg_price_uzs'):
                         fmt_v = f"{float(v):,.2f}".replace(",", " ") + (" сум" if is_ru else " so‘m")
-                    elif k in ('deals_count',):
+                    elif k in ('deals_count', 'total_deals'):
                         fmt_v = f"{int(v):,}".replace(",", " ") + ("" if is_ru else " ta")
                     elif isinstance(v, float):
                         fmt_v = f"{v:,.2f}".replace(",", " ")

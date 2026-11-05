@@ -4,18 +4,10 @@ import { UZBEKISTAN_REGIONS, UZBEKISTAN_OUTER_BORDER } from './uzbekistanMapData
 
 export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedRegion }) {
   const [is3D, setIs3D] = useState(true);
-  const [isRotatingY, setIsRotatingY] = useState(true);
-  const [rotY, setRotY] = useState(0); // Y-axis rotation in degrees (0 to 360°)
   const [tradeFlows, setTradeFlows] = useState([]);
   const [regionsData, setRegionsData] = useState({});
   const [hoveredRegion, setHoveredRegion] = useState(null);
   const [activeArc, setActiveArc] = useState(null);
-
-  // Drag interaction state
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const startRotY = useRef(0);
-  const animFrameId = useRef(null);
 
   // Quick lookup dictionary for regions coordinates
   const coordsMap = useRef({});
@@ -57,63 +49,13 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
     return () => { isMounted = false; };
   }, [year]);
 
-  // Smooth continuous 360-DEGREE rotation along the Y-AXIS
-  useEffect(() => {
-    const loop = () => {
-      if (isRotatingY && !isDragging.current && is3D) {
-        setRotY(prev => (prev + 0.35) % 360);
-      }
-      animFrameId.current = requestAnimationFrame(loop);
-    };
-
-    animFrameId.current = requestAnimationFrame(loop);
-    return () => {
-      if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
-    };
-  }, [isRotatingY, is3D]);
-
-  // Mouse / Touch Drag to Spin along Y-AXIS
-  const handleMouseDown = (e) => {
-    if (!is3D) return;
-    isDragging.current = true;
-    startX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    startRotY.current = rotY;
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging.current || !is3D) return;
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    const deltaX = (clientX - startX.current) * 0.5;
-    setRotY((startRotY.current + deltaX + 3600) % 360);
-  };
-
-  const handleMouseUp = () => {
-    isDragging.current = false;
-  };
-
-  const toggleRotation = () => {
-    soundEffects.playToggle();
-    setIsRotatingY(!isRotatingY);
-  };
-
   const togglePerspective = () => {
     soundEffects.playToggle();
     setIs3D(!is3D);
   };
 
-  const resetRotation = () => {
-    soundEffects.playClick();
-    setRotY(0);
-  };
-
   return (
-    <div 
-      className="relative w-full rounded-2xl bg-[#080D08] border border-[#203220] overflow-hidden select-none p-4 shadow-2xl"
-      onMouseMove={handleMouseMove}
-      onTouchMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onTouchEnd={handleMouseUp}
-    >
+    <div className="relative w-full rounded-2xl bg-[#080D08] border border-[#203220] overflow-hidden select-none p-4 shadow-2xl">
       {/* Background Matrix Grid */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-20"
@@ -135,27 +77,12 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
             <span>UZ / 41°18' N 69°14' E</span>
           </div>
           <span className="text-xs font-mono text-[#7e997a] tracking-wider uppercase hidden sm:inline">
-            360° ВРАЩЕНИЕ ПО ОСИ Y • 14 РЕГИОНОВ ({year})
+            14 РЕГИОНОВ РЕСПУБЛИКИ УЗБЕКИСТАН ({year})
           </span>
         </div>
 
-        {/* View & Rotation Controls */}
+        {/* Perspective Switcher */}
         <div className="flex items-center gap-2">
-          {/* 360° Rotation Toggle along Y Axis */}
-          <button
-            onClick={toggleRotation}
-            className={`px-3 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 ${
-              isRotatingY
-                ? 'bg-[#182a18] border border-[#C8EA4A]/50 text-[#C8EA4A]'
-                : 'bg-[#121c12] border border-[#263a26] text-[#6e886b]'
-            }`}
-            title="Автоматическое 360-градусное вращение по оси Y"
-          >
-            <span className={isRotatingY ? 'animate-spin text-sm' : 'text-sm'}>🔄</span>
-            <span>{isRotatingY ? 'ВРАЩЕНИЕ 360°: ВКЛ' : 'ПАУЗА'}</span>
-          </button>
-
-          {/* Perspective Switcher */}
           <button
             onClick={togglePerspective}
             className={`px-3 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 ${
@@ -166,57 +93,40 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
           >
             <span>{is3D ? '3D РАКУРС' : '2D СХЕМА'}</span>
           </button>
-
-          {is3D && (
-            <button
-              onClick={resetRotation}
-              className="p-1 px-2.5 rounded text-[11px] font-mono bg-[#111c11] text-[#708c6d] hover:text-white border border-[#203220]"
-              title="Сброс на 0°"
-            >
-              СБРОС 0°
-            </button>
-          )}
         </div>
       </div>
 
-      {/* 3D Turntable Stage Container */}
+      {/* Map Canvas Container */}
       <div 
-        className="relative w-full h-[380px] sm:h-[480px] flex items-center justify-center cursor-ew-resize overflow-hidden"
+        className="relative w-full h-[380px] sm:h-[460px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out"
         style={{
-          perspective: '1300px',
+          perspective: '1200px',
         }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleMouseDown}
       >
-        {/* Holographic Island Stage - ROTATES 360° AROUND Y-AXIS */}
+        {/* Holographic Island Stage - STABLE & FIXED (NO ROTATION) */}
         <div 
-          className="relative w-full h-full max-w-[960px] flex items-center justify-center origin-center"
+          className="relative w-full h-full max-w-[960px] flex items-center justify-center origin-center transition-transform duration-700 ease-out"
           style={{
             transform: is3D 
-              ? `rotateX(28deg) rotateY(${rotY}deg) scale(0.95)` 
-              : 'rotateX(0deg) rotateY(0deg) scale(1)',
+              ? 'rotateX(36deg) translateY(12px) scale(0.96)' 
+              : 'rotateX(0deg) translateY(0) scale(1)',
             transformStyle: 'preserve-3d',
-            transition: isDragging.current ? 'none' : 'transform 0.08s linear',
           }}
         >
-          {/* Ground Circular Radar Turntable Base */}
+          {/* Base Shadow for 3D Depth */}
           {is3D && (
             <div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none -z-20"
-              style={{ transform: 'translateZ(-45px)' }}
-            >
-              <div className="w-[780px] h-[460px] rounded-full border border-[#C8EA4A]/10 animate-pulse" />
-              <div className="absolute w-[620px] h-[360px] rounded-full border border-[#C8EA4A]/15" />
-              <div className="absolute w-[440px] h-[250px] rounded-full border border-[#C8EA4A]/20" />
-            </div>
+              className="absolute inset-0 bg-[#040804]/90 rounded-3xl blur-2xl -z-20"
+              style={{ transform: 'translateZ(-40px) translateY(35px)' }}
+            />
           )}
 
-          {/* SVG Map of Uzbekistan with 14 regions and 3D extrusion */}
+          {/* SVG Map of Uzbekistan with 14 official regions */}
           <svg
             viewBox="0 0 1000 550"
             className="w-full h-full overflow-visible"
             style={{ 
-              filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.9))',
+              filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.85))',
               transformStyle: 'preserve-3d',
             }}
           >
@@ -235,7 +145,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
               </filter>
             </defs>
 
-            {/* 3D Depth Extrusion Slabs (Layer 1, 2, 3) for thick volume while rotating */}
+            {/* 3D Extrusion Slabs for Realistic Terrain Thickness */}
             {is3D && (
               <>
                 <path
@@ -243,7 +153,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                   fill="#050A05"
                   stroke="#122412"
                   strokeWidth="4"
-                  transform="translate(0, 24)"
+                  transform="translate(0, 18)"
                   opacity="0.8"
                 />
                 <path
@@ -251,16 +161,8 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                   fill="#091309"
                   stroke="#1B331B"
                   strokeWidth="3"
-                  transform="translate(0, 16)"
+                  transform="translate(0, 10)"
                   opacity="0.85"
-                />
-                <path
-                  d={UZBEKISTAN_OUTER_BORDER}
-                  fill="#0D1A0D"
-                  stroke="#264526"
-                  strokeWidth="2"
-                  transform="translate(0, 8)"
-                  opacity="0.9"
                 />
               </>
             )}
@@ -339,7 +241,7 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
               );
             })}
 
-            {/* Region Node Hubs with 3D Billboard Counter-Rotation */}
+            {/* Region Node Hubs and Labels */}
             {UZBEKISTAN_REGIONS.map((reg) => {
               const regData = regionsData[reg.id];
               const isHovered = hoveredRegion === reg.id;
@@ -389,26 +291,18 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
                     fill={reg.isCapital ? "#FFFFFF" : (isHovered ? "#C8EA4A" : "#B2D858")}
                   />
 
-                  {/* Region Code Tag with Counter-Rotation Billboarding so text is ALWAYS readable */}
-                  <g 
-                    style={{ 
-                      transform: is3D ? `rotateY(${-rotY}deg)` : 'none', 
-                      transformOrigin: '0px -12px',
-                      transition: isDragging.current ? 'none' : 'transform 0.08s linear'
-                    }}
+                  {/* Region Code Tag */}
+                  <text
+                    y="-12"
+                    textAnchor="middle"
+                    fill={isHovered || isSelected ? "#C8EA4A" : "#97B592"}
+                    fontSize={reg.isCapital ? "11" : "10"}
+                    fontFamily="monospace"
+                    fontWeight={reg.isCapital || isHovered ? "bold" : "normal"}
+                    className="pointer-events-none select-none drop-shadow-md"
                   >
-                    <text
-                      y="-12"
-                      textAnchor="middle"
-                      fill={isHovered || isSelected ? "#C8EA4A" : "#97B592"}
-                      fontSize={reg.isCapital ? "11" : "10"}
-                      fontFamily="monospace"
-                      fontWeight={reg.isCapital || isHovered ? "bold" : "normal"}
-                      className="pointer-events-none select-none drop-shadow-md"
-                    >
-                      {reg.short}
-                    </text>
-                  </g>
+                    {reg.short}
+                  </text>
                 </g>
               );
             })}
@@ -455,11 +349,10 @@ export default function UzbekistanMap({ year = 2026, onSelectRegion, selectedReg
       <div className="relative z-20 mt-2 pt-2 border-t border-[#1b2b1b] flex flex-wrap items-center justify-between text-[11px] font-mono text-[#7b9777]">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#C8EA4A]" />
-          <span>360° ВРАЩЕНИЕ ПО ОСИ Y</span>
-          <span className="text-[#556952] hidden md:inline">| Двигайте мышью влево/вправо для ручного вращения</span>
+          <span>РЕСПУБЛИКА УЗБЕКИСТАН: 14 АДМИНИСТРАТИВНЫХ РЕГИОНОВ</span>
         </div>
-        <div className="text-[10px] text-[#C8EA4A]">
-          УГОЛ ВРАЩЕНИЯ Y: {Math.round(rotY)}°
+        <div className="text-[10px] text-[#556952]">
+          Наведите на регион для просмотра аналитики
         </div>
       </div>
     </div>

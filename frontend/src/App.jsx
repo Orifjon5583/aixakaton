@@ -17,7 +17,6 @@ import UzbekistanMap from './components/UzbekistanMap';
 import MarketCharts from './components/MarketCharts';
 import DealRegistryTable from './components/DealRegistryTable';
 import DealPassportModal from './components/DealPassportModal';
-import QueryHistoryTab from './components/QueryHistoryTab';
 import { soundManager } from './components/SoundEffects';
 
 export default function App() {
@@ -220,7 +219,6 @@ export default function App() {
               { id: 'observatory', label: lang === 'uz' ? 'Kuzatuv' : 'Обсерватория', icon: Compass },
               { id: 'deals', label: lang === 'uz' ? 'Bitimlar' : 'Реестр сделок', icon: Table },
               { id: 'chat', label: lang === 'uz' ? 'AI Tahlilchi' : 'AI-Аналитик', icon: Bot },
-              { id: 'history', label: lang === 'uz' ? 'Tarix' : 'История', icon: Clock },
               { id: 'dataset', label: lang === 'uz' ? 'Dataset' : 'Датасет', icon: Database },
               { id: 'about', label: lang === 'uz' ? 'Loyiha' : 'О проекте', icon: Info },
             ].map(tab => {
@@ -647,20 +645,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ============================================================== */}
-        {/* TAB 4: QUERY HISTORY AUDIT LOG                                 */}
-        {/* ============================================================== */}
-        {activeTab === 'history' && (
-          <div className="animate-fadeIn">
-            <QueryHistoryTab
-              lang={lang}
-              onRerunQuery={(q) => {
-                setActiveTab('chat');
-                handleSend(q);
-              }}
-            />
-          </div>
-        )}
 
         {/* ============================================================== */}
         {/* TAB 5: DATASET & SCHEMA ADMIN                                 */}

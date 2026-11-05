@@ -153,8 +153,14 @@ class AnswerValidator:
         q_lower = normalize_text(question)
         req = QuestionRequirements()
 
+        is_macro_analysis = any(w in q_lower for w in [
+            'defolt', 'дефолт', 'majburiyatlar bajarilmagani', 'bekor qilish', 'bekor qilingan', 'necha foizi',
+            'spred', 'спред', 'volatillik', 'волатильность', 'boshlang\'ich narx', 'yakuniy bitim narxi',
+            'korrelyatsiya', 'корреляция', 'hosil yig\'im', 'yig\'im-terim'
+        ])
+
         # 1. Company requirement
-        if any(w in q_lower for w in ['kompaniya', 'kompaniyani', 'sotuvchi', 'xaridor', 'korxona', 'tashkilot', 'компания', 'компанию', 'продавец', 'покупатель', 'предприятие']):
+        if not is_macro_analysis and any(w in q_lower for w in ['kompaniya', 'kompaniyani', 'sotuvchi', 'xaridor', 'korxona', 'tashkilot', 'компания', 'компанию', 'продавец', 'покупатель', 'предприятие']):
             req.wants_company = True
 
         # 2. Deals count requirement

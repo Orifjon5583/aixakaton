@@ -36,6 +36,9 @@ class QueryPlan(BaseModel):
         'COMPANY_PROFILE',
         'BROKER_PROFILE',
         'GENERAL_STATS',
+        'DEFAULT_RISK_ANALYSIS',
+        'SPREAD_VOLATILITY_ANALYSIS',
+        'AGRI_SEASONALITY_ANALYSIS',
         'OUT_OF_SCOPE'
     ] = Field(description="So'rov maqsadi va turi")
     

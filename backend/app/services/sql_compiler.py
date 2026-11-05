@@ -158,6 +158,50 @@ class SQLCompiler:
                 LIMIT 1
             """.strip()
 
+        # 10. DEFAULT_RISK_ANALYSIS (Kliring, Defolt, Majburiyatlar bajarilmagani)
+        if qt == 'DEFAULT_RISK_ANALYSIS':
+            return f"""
+                SELECT 
+                    deal_status,
+                    count(*) AS deals_count,
+                    round(count(*) * 100.0 / (SELECT count(*) FROM deals), 2) AS percentage,
+                    round(sum(deal_amount_uzs), 2) AS total_amount_uzs
+                FROM deals
+                GROUP BY deal_status
+                ORDER BY deals_count DESC
+            """.strip()
+
+        # 11. SPREAD_VOLATILITY_ANALYSIS (Monopol tovarlar, Spred, Boshlang'ich va yakuniy narx)
+        if qt == 'SPREAD_VOLATILITY_ANALYSIS':
+            return f"""
+                SELECT 
+                    deal_year,
+                    count(*) AS deals_count,
+                    round(avg((unit_price - starting_price) / nullif(starting_price, 0) * 100), 2) AS avg_spread_pct,
+                    round(avg(starting_price), 2) AS avg_starting_price,
+                    round(avg(unit_price), 2) AS avg_deal_price,
+                    round(sum(deal_amount_uzs), 2) AS total_amount_uzs
+                FROM deals
+                WHERE (product_name ILIKE '%бензин%' OR product_name ILIKE '%цемент%')
+                GROUP BY deal_year
+                ORDER BY deal_year ASC
+            """.strip()
+
+        # 12. AGRI_SEASONALITY_ANALYSIS (Bug'doy, un, paxta yog'i/shroti, Korrelyatsiya, Hosil davri)
+        if qt == 'AGRI_SEASONALITY_ANALYSIS':
+            return f"""
+                SELECT 
+                    deal_year,
+                    count(*) AS deals_count,
+                    round(sum(volume_units), 2) AS total_volume_tons,
+                    round(avg(unit_price), 2) AS avg_unit_price,
+                    round(sum(deal_amount_uzs), 2) AS total_amount_uzs
+                FROM deals
+                WHERE (product_name ILIKE '%пшеница%' OR product_name ILIKE '%мука%' OR product_name ILIKE '%масло%' OR product_name ILIKE '%шрот%')
+                GROUP BY deal_year
+                ORDER BY deal_year ASC
+            """.strip()
+
         # Default / GENERAL_STATS
         return f"""
             SELECT deal_year, count(*) AS total_deals,

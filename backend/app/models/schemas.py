@@ -40,6 +40,7 @@ class QueryPlan(BaseModel):
         'SPREAD_VOLATILITY_ANALYSIS',
         'AGRI_SEASONALITY_ANALYSIS',
         'EXPORT_COMMODITY_AUDIT',
+        'SELLER_TURNOVER_MEDIAN',
         'OUT_OF_SCOPE'
     ] = Field(description="So'rov maqsadi va turi")
     

@@ -65,3 +65,15 @@ def test_export_commodity_audit():
     assert "24 ta bitim" in ans
     assert "18 kun" in ans
     assert "14 kun" in ans
+
+def test_seller_turnover_median():
+    q = "Сколько уникальных продавцов имели хотя бы одну полностью исполненную сделку в 2025 году? Для каждого продавца рассчитайте общую стоимость таких сделок в сумах с конвертацией долларов по курсу на дату сделки, а затем найдите медиану оборота среди этих продавцов. Укажите оба результата."
+    plan = gemini_service.generate_query_plan(q, lang="ru")
+    assert plan.query_type == "SELLER_TURNOVER_MEDIAN"
+    sql = sql_compiler.compile_plan(plan)
+    db_res = db_manager.execute_safe_query(sql)
+    assert db_res['success'] is True
+    ans = gemini_service.explain_results(q, plan, sql, db_res['columns'], db_res['rows'], lang="ru")
+    assert "319" in ans
+    assert "52 845 170 763" in ans
+    assert "49 438 068 272 540" in ans

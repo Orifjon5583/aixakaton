@@ -254,6 +254,29 @@ class SQLCompiler:
                 GROUP BY p.product_name
             """.strip()
 
+        # 14. SELLER_TURNOVER_MEDIAN (Unique sellers with executed deals, total turnover in UZS, median turnover)
+        if qt == 'SELLER_TURNOVER_MEDIAN':
+            year = plan.filters.years[0] if (plan.filters.years and len(plan.filters.years) > 0) else 2025
+            return f"""
+                WITH seller_turnovers AS (
+                    SELECT 
+                        seller_inn,
+                        count(*) as executed_deals_cnt,
+                        sum(deal_amount_uzs) as total_uzs
+                    FROM deals
+                    WHERE deal_year = {year} AND deal_status = 'Исполнен'
+                    GROUP BY seller_inn
+                )
+                SELECT 
+                    count(*) as unique_sellers_count,
+                    round(sum(total_uzs), 2) as total_executed_uzs,
+                    round(median(total_uzs), 2) as median_turnover_uzs,
+                    round(avg(total_uzs), 2) as avg_turnover_uzs,
+                    round(min(total_uzs), 2) as min_turnover_uzs,
+                    round(max(total_uzs), 2) as max_turnover_uzs
+                FROM seller_turnovers
+            """.strip()
+
         # Default / GENERAL_STATS
         return f"""
             SELECT deal_year, count(*) AS total_deals,

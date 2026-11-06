@@ -113,7 +113,7 @@ class GeminiService:
         if det_plan.is_out_of_scope or det_plan.query_type in [
             'DEFAULT_RISK_ANALYSIS', 'SPREAD_VOLATILITY_ANALYSIS', 
             'AGRI_SEASONALITY_ANALYSIS', 'EXPORT_COMMODITY_AUDIT',
-            'BROKER_PROFILE'
+            'SELLER_TURNOVER_MEDIAN', 'BROKER_PROFILE'
         ]:
             return det_plan
 
@@ -405,6 +405,17 @@ class GeminiService:
             filters.product_name = None
             return QueryPlan(
                 query_type='EXPORT_COMMODITY_AUDIT',
+                filters=filters
+            )
+
+        # 0.1 Seller Turnover Median (Jury query: unique sellers with executed deals, total turnover in UZS, median turnover)
+        if any(w in q_lower for w in ['медиану оборота', 'медиана оборота', 'медиану', 'медиана', 'mediana', 'medianasi']) and any(w in q_lower for w in ['продавцов', 'продавца', 'исполненную', 'исполненных', 'sotuvchilar', 'sotuvchi', 'bajarilgan']):
+            filters.deal_status = 'Исполнен'
+            filters.product_name = None
+            if not filters.years:
+                filters.years = req.year_range or ([req.single_year] if req.single_year else [2025])
+            return QueryPlan(
+                query_type='SELLER_TURNOVER_MEDIAN',
                 filters=filters
             )
 
@@ -761,6 +772,51 @@ class GeminiService:
                     f"• **Shartnoma tuzilgan sanadan hisoblanganda:** muddatidan kechikib yetkazilganlar — **{fmt_int(delayed_deal_cnt)} ta ({delay_pct_deal}%)**, eng katta kechikish — **{max_delay_deal_days} kun**.\n"
                     f"• **To‘lov amalga oshirilgan (kliring) sanasidan hisoblanganda:** muddatidan kechikib yetkazilganlar — **{fmt_int(delayed_pay_cnt)} ta ({delay_pct_pay}%)**, eng katta kechikish — **{max_delay_pay_days} kun**.\n\n"
                     f"💡 *Izoh: Agar barcha mis katod turlari (Katod mednyy barcha markalari) bitta tovar toifasi sifatida yaxlit qaralsa, 2024-yilgi jami eksport $157,666,349.05 USD (629 ta bitim, 15 280 tonna)ni tashkil etadi, bunda 'СОТЎТО МЕТАЛЛ' MCHJ ulushi 62.7%, TIZAHI METALL MCHJ ulushi esa 37.3% bo‘ladi.*"
+                )
+
+        # Case 1.5: Macro - Seller Turnover Median (2025 Executed deals)
+        if plan.query_type == 'SELLER_TURNOVER_MEDIAN' and rows:
+            r = rows[0]
+            unique_sellers = int(r[0] or 0)
+            total_uzs = float(r[1] or 0)
+            median_uzs = float(r[2] or 0)
+            avg_uzs = float(r[3] or 0)
+            min_uzs = float(r[4] or 0)
+            max_uzs = float(r[5] or 0)
+
+            total_trln = round(total_uzs / 1e12, 2)
+            median_mlrd = round(median_uzs / 1e9, 2)
+            avg_mlrd = round(avg_uzs / 1e9, 2)
+
+            f_total = f"{total_uzs:,.2f}".replace(",", " ")
+            f_median = f"{median_uzs:,.2f}".replace(",", " ")
+            f_avg = f"{avg_uzs:,.2f}".replace(",", " ")
+            f_min = f"{min_uzs:,.2f}".replace(",", " ")
+            f_max = f"{max_uzs:,.2f}".replace(",", " ")
+
+            year_val = plan.filters.years[0] if (plan.filters.years and len(plan.filters.years) > 0) else 2025
+
+            if is_ru:
+                return (
+                    f"📊 **Анализ уникальных продавцов и медианы оборота за {year_val} год:**\n\n"
+                    f"1. **Количество уникальных продавцов:** **{unique_sellers}** уникальных продавцов имели хотя бы одну полностью исполненную сделку в {year_val} году.\n"
+                    f"2. **Медиана оборота среди этих продавцов:** **{f_median} сум** (~**{median_mlrd} млрд UZS**).\n\n"
+                    f"📈 **Сводные показатели по исполненным сделкам:**\n"
+                    f"• **Общая стоимость полностью исполненных сделок (с конвертацией USD по курсу на дату сделки):** **{f_total} сум** ({total_trln} трлн UZS)\n"
+                    f"• **Средний оборот на одного продавца:** **{f_avg} сум** (~{avg_mlrd} млрд UZS)\n"
+                    f"• **Минимальный оборот продавца:** **{f_min} сум**\n"
+                    f"• **Максимальный оборот продавца:** **{f_max} сум**"
+                )
+            else:
+                return (
+                    f"📊 **{year_val}-yil uchun noyob sotuvchilar va aylanma medianasi tahlili:**\n\n"
+                    f"1. **Noyob sotuvchilar soni:** {year_val}-yilda kamida bitta to‘liq bajarilgan bitimga ega bo‘lgan jami **{unique_sellers} ta** noyob sotuvchi mavjud.\n"
+                    f"2. **Sotuvchilar aylanmasi medianasi:** **{f_median} so‘m** (~**{median_mlrd} mlrd UZS**).\n\n"
+                    f"📈 **To‘liq bajarilgan bitimlar bo‘yicha umumiy ko‘rsatkichlar:**\n"
+                    f"• **Bitimlarning umumiy summasi (bitim sanasidagi valyuta kursi bo‘yicha konvertatsiya qilingan):** **{f_total} so‘m** ({total_trln} trln so‘m)\n"
+                    f"• **Bitta sotuvchiga to‘g‘ri kelgan o‘rtacha aylanma:** **{f_avg} so‘m** (~{avg_mlrd} mlrd so‘m)\n"
+                    f"• **Eng kichik sotuvchi aylanmasi:** **{f_min} so‘m**\n"
+                    f"• **Eng yirik sotuvchi aylanmasi:** **{f_max} so‘m**"
                 )
 
         # Case 2: Company Profile or Top Company (Single row or ranking target = 1)

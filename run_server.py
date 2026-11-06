@@ -8,6 +8,10 @@ import sys
 import io
 import os
 import uvicorn
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
 
 # Ensure UTF-8 stdout on Windows
 if sys.stdout.encoding != 'utf-8':

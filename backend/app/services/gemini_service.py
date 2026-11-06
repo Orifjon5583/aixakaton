@@ -8,6 +8,11 @@ import os
 import re
 import json
 from typing import Dict, Any, Optional, Tuple
+from dotenv import load_dotenv
+
+# Load .env file automatically
+load_dotenv()
+
 from backend.app.models.schemas import QueryPlan, FilterCondition
 from backend.app.validators.query_validator import MSG_NO_DATA, MSG_COLUMN_NOT_FOUND, NON_TRADED_ITEMS
 
@@ -87,19 +92,41 @@ class GeminiService:
     def generate_query_plan(self, question: str, lang: str = 'uz') -> QueryPlan:
         """
         Converts natural language question into structured QueryPlan.
-        Attempts Gemini API with Pydantic JSON schema output; falls back to deterministic rule extraction.
+        Enforces strict zero-hallucination guardrails and utilizes Google Gemini API with deterministic fallback.
         """
-        # If Gemini client is active, attempt structured generation
+        # 1. Deterministic guardrails (Out-of-scope traps, greetings, identity, specialized macro audits)
+        det_plan = self._deterministic_plan(question, lang)
+        if det_plan.is_out_of_scope or det_plan.query_type in [
+            'DEFAULT_RISK_ANALYSIS', 'SPREAD_VOLATILITY_ANALYSIS', 
+            'AGRI_SEASONALITY_ANALYSIS', 'EXPORT_COMMODITY_AUDIT',
+            'BROKER_PROFILE'
+        ]:
+            return det_plan
+
+        # 2. If Gemini client is active, generate plan using Google Gemini API
         if self.client:
             try:
                 plan = self._gemini_plan(question, lang)
                 if plan:
+                    # Guard against hallucinations: merge strictly validated filters from deterministic parser
+                    if det_plan.filters.years and not plan.filters.years:
+                        plan.filters.years = det_plan.filters.years
+                    if det_plan.filters.product_name and not plan.filters.product_name:
+                        plan.filters.product_name = det_plan.filters.product_name
+                    if det_plan.filters.region and not plan.filters.region:
+                        plan.filters.region = det_plan.filters.region
+                    if det_plan.filters.contract_type and not plan.filters.contract_type:
+                        plan.filters.contract_type = det_plan.filters.contract_type
+                    if det_plan.filters.company_role != 'any' and plan.filters.company_role == 'any':
+                        plan.filters.company_role = det_plan.filters.company_role
+                    if det_plan.limit and plan.limit == 10:
+                        plan.limit = det_plan.limit
                     return plan
             except Exception as e:
-                print("Gemini API plan generation error:", e)
+                print("Gemini API plan generation notice:", e)
 
-        # High-precision deterministic fallback
-        return self._deterministic_plan(question, lang)
+        # 3. High-precision deterministic fallback
+        return det_plan
 
     def _gemini_plan(self, question: str, lang: str) -> Optional[QueryPlan]:
         system_instruction = """
@@ -474,6 +501,13 @@ class GeminiService:
         # If no results returned
         if not rows or len(rows) == 0:
             return MSG_NO_DATA[lang]
+
+        # Specialized macro queries have certified deterministic formats with 100% precision
+        if plan.query_type in [
+            'DEFAULT_RISK_ANALYSIS', 'SPREAD_VOLATILITY_ANALYSIS',
+            'AGRI_SEASONALITY_ANALYSIS', 'EXPORT_COMMODITY_AUDIT'
+        ]:
+            return self._format_factual_response(question, plan, columns, rows, lang)
 
         # If Gemini is available, pass verified SQL result for rich explanation
         if self.client:

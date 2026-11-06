@@ -49,3 +49,19 @@ def test_agri_seasonality_analysis():
     ans = gemini_service.explain_results(q, plan, sql, db_res['columns'], db_res['rows'], lang="uz")
     assert "korrelyatsiya" in ans.lower()
     assert "avgust–noyabr" in ans
+
+def test_export_commodity_audit():
+    q = "2024-yilda eksport bitimlari bo’yicha dollardagi summasi eng katta bo’lgan tovarni aniqlang. Shu tovar uchun (barcha ro’yxatga olingan bitimlarni, bekor qilinganlarni ham qo’shib hisoblab) ayting: jami summa USD da, bitimlar soni, jami hajm va tortilgan o’rtacha narx (USD/birlik). So’ng: nechta bitim bekor qilingan va ularsiz summa qancha? Eng ko’p sotgan sotuvchining STIR raqami, nomi, summasi va umumiy summadagi ulushi qancha? Va yetkazib berilgan bitimlar orasida nechtasi shartnoma muddatidan kechikib yetkazilgan (soni va foizi), eng katta kechikish necha kun?"
+    plan = gemini_service.generate_query_plan(q, lang="uz")
+    assert plan.query_type == "EXPORT_COMMODITY_AUDIT"
+    sql = sql_compiler.compile_plan(plan)
+    db_res = db_manager.execute_safe_query(sql)
+    assert db_res['success'] is True
+    ans = gemini_service.explain_results(q, plan, sql, db_res['columns'], db_res['rows'], lang="uz")
+    assert "КАТОД МЕДНЫЙ" in ans
+    assert "98,824,607.77" in ans
+    assert "917899526" in ans
+    assert "385 ta bitim" in ans
+    assert "24 ta bitim" in ans
+    assert "18 kun" in ans
+    assert "14 kun" in ans

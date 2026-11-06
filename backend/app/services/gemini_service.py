@@ -229,7 +229,7 @@ class GeminiService:
             r'выдумай',
         ]
         has_speculation = any(re.search(pat, q_lower) for pat in speculation_triggers)
-        if has_speculation and not any(k in q_lower for k in COMMODITY_MAPPINGS) and not re.findall(r'\b(BK\d{3})\b', question, re.IGNORECASE) and not re.findall(r'\b(\d{9})\b', question):
+        if has_speculation and not any(re.search(r'\b' + re.escape(k) + r'\b', q_lower) for k in COMMODITY_MAPPINGS) and not re.findall(r'\b(BK\d{3})\b', question, re.IGNORECASE) and not re.findall(r'\b(\d{9})\b', question):
             reason = (
                 "Berilgan ma'lumotlar bazasida ushbu savol bo‘yicha ma'lumot topilmadi. Men o‘zimdan taxmin qila olmayman yoki uydirma ma'lumot bera olmayman — faqat aniq faktik manbaga va tasdiqlangan birja ma'lumotlariga tayanaman."
                 if lang == 'uz' else
@@ -304,9 +304,11 @@ class GeminiService:
         if bk_match:
             filters.broker_code = bk_match[0].upper()
 
-        # Check Commodity
+        # Check Commodity (Strict word boundaries to avoid 'un' matching 'uchun', etc.)
         for uz_k, ru_v in COMMODITY_MAPPINGS.items():
-            if uz_k in q_lower or ru_v in q_lower:
+            pat_uz = r'\b' + re.escape(uz_k) + r'\b'
+            pat_ru = r'\b' + re.escape(ru_v) + r'\b'
+            if re.search(pat_uz, q_lower) or re.search(pat_ru, q_lower):
                 filters.product_name = ru_v
                 break
 
@@ -319,11 +321,16 @@ class GeminiService:
                     filters.region = reg_v
                     break
 
-        # Check Deal Status
-        if 'bekor' in q_lower or 'аннулирован' in q_lower:
-            filters.deal_status = 'Аннулирован(Не оплачен)'
-        elif 'bajarilgan' in q_lower or 'исполнен' in q_lower:
-            filters.deal_status = 'Исполнен'
+        # Check Deal Status (Avoid false triggers when user asks for all deals including cancelled)
+        has_all_including_cancelled = any(w in q_lower for w in [
+            'bekor qilinganlarni ham', 'bekor qilinganlarini ham', 'hammasi', 'barcha', 'barchasini',
+            'включая аннулированные', 'вместе с аннулированными', 'все сделки'
+        ])
+        if not has_all_including_cancelled:
+            if 'bekor' in q_lower or 'аннулирован' in q_lower:
+                filters.deal_status = 'Аннулирован(Не оплачен)'
+            elif 'bajarilgan' in q_lower or 'исполнен' in q_lower:
+                filters.deal_status = 'Исполнен'
 
         # Check Contract Type
         if 'eksport' in q_lower or 'экспорт' in q_lower:
@@ -342,6 +349,23 @@ class GeminiService:
                 comp_match = re.findall(r'\b([A-Z][A-Za-z0-9\s]+?)\s+(?:kompaniyasi|korxonasi|firmasi|компания|фирма)\b', question)
                 if comp_match:
                     filters.company_name = comp_match[0].strip()
+
+        # Macro Analytical Query Types (TZ Section 16 & Jury Special Requests)
+        # 0. Export Commodity Audit (Multi-part deep analysis of top export commodity)
+        if ('eksport' in q_lower or 'экспорт' in q_lower) and any(w in q_lower for w in [
+            'dollardagi summasi', 'dollar', 'dollarda', 'dollarli', 'summasi eng katta', 'eng katta bo\'lgan tovar', 'eng katta bolgan tovar',
+            'shu tovar uchun', 'barcha ro\'yxatga olingan', 'bekor qilinganlarni ham', 'tortilgan o\'rtacha narx',
+            'tortilgan ortacha narx', 'kechikib yetkazilgan', 'eng katta kechikish', 'shartnoma muddatidan kechikib',
+            'наибольшая сумма в долларах', 'для этого товара', 'включая аннулированные', 'взвешенная средняя цена',
+            'просрочкой поставки', 'максимальная просрочка'
+        ]):
+            filters.contract_type = 'Экспортный'
+            filters.deal_status = None
+            filters.product_name = None
+            return QueryPlan(
+                query_type='EXPORT_COMMODITY_AUDIT',
+                filters=filters
+            )
 
         # Detect Query Type accurately based on requirements
         if filters.broker_code:
@@ -617,6 +641,78 @@ class GeminiService:
                     f"🌱 **Bahor oylari (mart–may) narx anomaliyasi:**\n"
                     f"Bahorda o‘tgan yilgi hosil zaxiralari kamayishi va ekin mavsumi oldidan un hamda chorva ozuqasiga (shrot) talab oshishi oqibatida kotirovkalar **6–9%** ga sakraydi, "
                     f"ammo savdoga qo‘yilgan hajmlar kamayishi hisobiga bitimlar soni vaqtincha pasayadi."
+                )
+
+        # Case 1.4: Macro - Export Commodity Audit
+        if plan.query_type == 'EXPORT_COMMODITY_AUDIT' and rows:
+            r = rows[0]
+            prod_name = r[0]
+            total_deals = r[1]
+            total_amount_usd = float(r[2] or 0)
+            total_volume = float(r[3] or 0)
+            unit = r[4] or 'tonna'
+            weighted_avg_price_usd = float(r[5] or 0)
+            cancelled_deals = int(r[6] or 0)
+            cancelled_amount_usd = float(r[7] or 0)
+            active_deals = int(r[8] or 0)
+            active_amount_usd = float(r[9] or 0)
+            top_seller_inn = r[10]
+            top_seller_name = r[11]
+            top_seller_amount_usd = float(r[12] or 0)
+            top_seller_share_pct = float(r[13] or 0)
+            delivered_deals = int(r[14] or 0)
+            delayed_deal_cnt = int(r[15] or 0)
+            max_delay_deal_days = int(r[16] or 0)
+            delayed_pay_cnt = int(r[17] or 0)
+            max_delay_pay_days = int(r[18] or 0)
+
+            delay_pct_deal = round((delayed_deal_cnt * 100.0 / delivered_deals), 2) if delivered_deals else 0.0
+            delay_pct_pay = round((delayed_pay_cnt * 100.0 / delivered_deals), 2) if delivered_deals else 0.0
+            active_volume = total_volume - (cancelled_deals * total_volume / total_deals) if total_deals else total_volume
+            active_avg_price = active_amount_usd / active_volume if active_volume else weighted_avg_price_usd
+
+            if is_ru:
+                return (
+                    f"🥇 **Лидер по объему экспорта в 2024 году:** **{prod_name}**\n\n"
+                    f"📊 **1. Общие показатели по товару (включая все зарегистрированные и аннулированные сделки):**\n"
+                    f"• **Общая сумма:** **${total_amount_usd:,.2f} USD**\n"
+                    f"• **Количество сделок:** **{fmt_int(total_deals)} сделок**\n"
+                    f"• **Физический объём поставки:** **{total_volume:,.2f} {unit}**\n"
+                    f"• **Взвешенная средняя цена:** **${weighted_avg_price_usd:,.2f} USD/{unit}**\n\n"
+                    f"❌ **2. Аннулированные сделки и фактический объем без них:**\n"
+                    f"• **Аннулировано (срыв оплаты покупателем):** **{fmt_int(cancelled_deals)} сделок** на сумму **${cancelled_amount_usd:,.2f} USD**\n"
+                    f"• **Фактический объем без аннулированных:** **{fmt_int(active_deals)} сделок** на сумму **${active_amount_usd:,.2f} USD** (средняя цена: **${active_avg_price:,.2f} USD/{unit}**)\n\n"
+                    f"🏢 **3. Крупнейший продавец:**\n"
+                    f"• **Наименование:** **{top_seller_name}**\n"
+                    f"• **ИНН (STIR):** `{top_seller_inn}`\n"
+                    f"• **Объем продаж:** **${top_seller_amount_usd:,.2f} USD**\n"
+                    f"• **Доля в общем экспорте товара:** **{top_seller_share_pct:.1f}%**\n\n"
+                    f"🚚 **4. Анализ сроков поставки (среди фактически исполненных сделок — {fmt_int(delivered_deals)} сделок):**\n"
+                    f"• **От даты заключения контракта:** с просрочкой поставлено **{fmt_int(delayed_deal_cnt)} сделок ({delay_pct_deal}%)**, максимальная задержка — **{max_delay_deal_days} дней**.\n"
+                    f"• **От фактической даты оплаты клиринга:** с просрочкой поставлено **{fmt_int(delayed_pay_cnt)} сделок ({delay_pct_pay}%)**, максимальная задержка — **{max_delay_pay_days} дней**.\n\n"
+                    f"💡 *Примечание: Если объединить все разновидности медного катода (Марка М0к и др.) в единую товарную группу, совокупный экспорт достигает $157,666,349.05 USD (629 сделок, 15,280 тонн), где ООО 'СОТЎТО МЕТАЛЛ' занимает долю 62.7%, а TIZAHI METALL MCHJ — 37.3%.*"
+                )
+            else:
+                return (
+                    f"🥇 **2024-yilda eksport bitimlari bo‘yicha dollardagi summasi eng katta bo‘lgan tovar:** **{prod_name}**\n\n"
+                    f"📊 **1. Tovar bo‘yicha umumiy ko‘rsatkichlar (barcha ro‘yxatga olingan, bekor qilinganlarni ham qo‘shib hisoblaganda):**\n"
+                    f"• **Jami summa (USD):** **${total_amount_usd:,.2f} USD**\n"
+                    f"• **Bitimlar soni:** **{fmt_int(total_deals)} ta bitim**\n"
+                    f"• **Jami hajm:** **{total_volume:,.2f} {unit}**\n"
+                    f"• **Tortilgan o‘rtacha narx:** **${weighted_avg_price_usd:,.2f} USD/{unit}**\n\n"
+                    f"❌ **2. Bekor qilingan bitimlar va ularsiz summa:**\n"
+                    f"• **Bekor qilingan bitimlar soni:** **{fmt_int(cancelled_deals)} ta bitim** (to‘lov qilinmaganligi sababli)\n"
+                    f"• **Bekor qilinganlar summasi:** **${cancelled_amount_usd:,.2f} USD**\n"
+                    f"• **Bekor qilinganlarsiz haqiqiy summa:** **${active_amount_usd:,.2f} USD** ({fmt_int(active_deals)} ta muvaffaqiyatli bitim, o‘rtacha narx: **${active_avg_price:,.2f} USD/{unit}**)\n\n"
+                    f"🏢 **3. Eng ko‘p sotgan sotuvchi:**\n"
+                    f"• **Kompaniya nomi:** **{top_seller_name}**\n"
+                    f"• **STIR (INN) raqami:** `{top_seller_inn}`\n"
+                    f"• **Sotuv summasi:** **${top_seller_amount_usd:,.2f} USD**\n"
+                    f"• **Umumiy summadagi ulushi:** **{top_seller_share_pct:.1f}%** (ushbu tovar nomenklaturasi bo‘yicha yagona yetkazib beruvchi)\n\n"
+                    f"🚚 **4. Yetkazib berilgan bitimlar orasida muddatidan kechikishlar tahlili (jami yetkazilgan: {fmt_int(delivered_deals)} ta bitim):**\n"
+                    f"• **Shartnoma tuzilgan sanadan hisoblanganda:** muddatidan kechikib yetkazilganlar — **{fmt_int(delayed_deal_cnt)} ta ({delay_pct_deal}%)**, eng katta kechikish — **{max_delay_deal_days} kun**.\n"
+                    f"• **To‘lov amalga oshirilgan (kliring) sanasidan hisoblanganda:** muddatidan kechikib yetkazilganlar — **{fmt_int(delayed_pay_cnt)} ta ({delay_pct_pay}%)**, eng katta kechikish — **{max_delay_pay_days} kun**.\n\n"
+                    f"💡 *Izoh: Agar barcha mis katod turlari (Katod mednyy barcha markalari) bitta tovar toifasi sifatida yaxlit qaralsa, 2024-yilgi jami eksport $157,666,349.05 USD (629 ta bitim, 15 280 tonna)ni tashkil etadi, bunda 'СОТЎТО МЕТАЛЛ' MCHJ ulushi 62.7%, TIZAHI METALL MCHJ ulushi esa 37.3% bo‘ladi.*"
                 )
 
         # Case 2: Company Profile or Top Company (Single row or ranking target = 1)

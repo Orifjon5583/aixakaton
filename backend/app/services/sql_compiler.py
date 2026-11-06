@@ -202,6 +202,58 @@ class SQLCompiler:
                 ORDER BY deal_year ASC
             """.strip()
 
+        # 13. EXPORT_COMMODITY_AUDIT (Deep export commodity audit: USD sum, volume, avg price, cancellations, seller STIR, delay)
+        if qt == 'EXPORT_COMMODITY_AUDIT':
+            year = plan.filters.years[0] if (plan.filters.years and len(plan.filters.years) > 0) else 2024
+            return f"""
+                WITH top_prod AS (
+                    SELECT product_name, sum(deal_amount_raw) as total_usd
+                    FROM deals
+                    WHERE deal_year = {year} AND contract_type = 'Экспортный'
+                    GROUP BY product_name
+                    ORDER BY total_usd DESC
+                    LIMIT 1
+                ),
+                seller_stat AS (
+                    SELECT 
+                        v.seller_inn,
+                        v.seller_name,
+                        sum(v.deal_amount_raw) as seller_usd
+                    FROM v_deal_details v
+                    JOIN top_prod tp ON v.product_name = tp.product_name
+                    WHERE v.deal_year = {year} AND v.contract_type = 'Экспортный'
+                    GROUP BY v.seller_inn, v.seller_name
+                    ORDER BY seller_usd DESC
+                    LIMIT 1
+                )
+                SELECT 
+                    p.product_name,
+                    count(d.deal_id) AS total_deals,
+                    round(sum(d.deal_amount_raw), 2) AS total_amount_usd,
+                    round(sum(d.volume_units), 2) AS total_volume,
+                    max(d.unit) AS unit,
+                    round(sum(d.deal_amount_raw) / NULLIF(sum(d.volume_units), 0), 2) AS weighted_avg_price_usd,
+                    sum(CASE WHEN d.deal_status = 'Аннулирован(Не оплачен)' THEN 1 ELSE 0 END) AS cancelled_deals_count,
+                    round(sum(CASE WHEN d.deal_status = 'Аннулирован(Не оплачен)' THEN d.deal_amount_raw ELSE 0 END), 2) AS cancelled_amount_usd,
+                    sum(CASE WHEN d.deal_status != 'Аннулирован(Не оплачен)' THEN 1 ELSE 0 END) AS active_deals_count,
+                    round(sum(CASE WHEN d.deal_status != 'Аннулирован(Не оплачен)' THEN d.deal_amount_raw ELSE 0 END), 2) AS active_amount_usd,
+                    max(s.seller_inn) AS top_seller_inn,
+                    max(s.seller_name) AS top_seller_name,
+                    round(max(s.seller_usd), 2) AS top_seller_amount_usd,
+                    round(max(s.seller_usd) * 100.0 / NULLIF(sum(d.deal_amount_raw), 0), 2) AS top_seller_share_pct,
+                    sum(CASE WHEN d.delivery_date IS NOT NULL THEN 1 ELSE 0 END) AS delivered_deals_count,
+                    sum(CASE WHEN d.delivery_date IS NOT NULL AND d.delivery_date > (d.deal_date + CAST(c.delivery_term_days AS INTEGER)) THEN 1 ELSE 0 END) AS delayed_from_deal_count,
+                    max(CASE WHEN d.delivery_date IS NOT NULL THEN (d.delivery_date - (d.deal_date + CAST(c.delivery_term_days AS INTEGER))) ELSE 0 END) AS max_delay_deal_days,
+                    sum(CASE WHEN d.delivery_date IS NOT NULL AND d.payment_date IS NOT NULL AND d.delivery_date > (d.payment_date + CAST(c.delivery_term_days AS INTEGER)) THEN 1 ELSE 0 END) AS delayed_from_payment_count,
+                    max(CASE WHEN d.delivery_date IS NOT NULL AND d.payment_date IS NOT NULL THEN (d.delivery_date - (d.payment_date + CAST(c.delivery_term_days AS INTEGER))) ELSE 0 END) AS max_delay_payment_days
+                FROM deals d
+                JOIN contracts c ON d.contract_id = c.contract_id
+                JOIN top_prod p ON d.product_name = p.product_name
+                CROSS JOIN seller_stat s
+                WHERE d.deal_year = {year} AND d.contract_type = 'Экспортный'
+                GROUP BY p.product_name
+            """.strip()
+
         # Default / GENERAL_STATS
         return f"""
             SELECT deal_year, count(*) AS total_deals,

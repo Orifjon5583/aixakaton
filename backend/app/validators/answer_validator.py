@@ -156,7 +156,8 @@ class AnswerValidator:
         is_macro_analysis = any(w in q_lower for w in [
             'defolt', 'дефолт', 'majburiyatlar bajarilmagani', 'bekor qilish', 'bekor qilingan', 'necha foizi',
             'spred', 'спред', 'volatillik', 'волатильность', 'boshlang\'ich narx', 'yakuniy bitim narxi',
-            'korrelyatsiya', 'корреляция', 'hosil yig\'im', 'yig\'im-terim'
+            'korrelyatsiya', 'корреляция', 'hosil yig\'im', 'yig\'im-terim',
+            'dollardagi summasi', 'dollarda', 'dollar', 'kechikib yetkazilgan', 'eng katta kechikish'
         ])
 
         # 1. Company requirement
@@ -278,7 +279,7 @@ class AnswerValidator:
             return False, req.not_found_reason, ["Target Subject Not Found"]
 
         # Check 1: If question requested company, is company name in the result and answer?
-        has_company_col = any(c in columns for c in ['company_name', 'name', 'seller_name', 'buyer_name'])
+        has_company_col = any(c in columns for c in ['company_name', 'name', 'seller_name', 'buyer_name', 'top_seller_name'])
         if req.wants_company and not has_company_col:
             if req.has_target_subject:
                 # Primary subject is absent in results: cannot return unrelated general stats
@@ -296,7 +297,7 @@ class AnswerValidator:
             missing.append("Bitimlar soni" if not is_ru else "Количество сделок")
 
         # Check 3: If question requested total amount, is it in result?
-        has_amount_col = any(c in columns for c in ['total_amount_uzs', 'amount_uzs', 'deal_amount_uzs'])
+        has_amount_col = any(c in columns for c in ['total_amount_uzs', 'amount_uzs', 'deal_amount_uzs', 'total_amount_usd', 'total_usd', 'active_amount_usd'])
         if req.wants_amount and not has_amount_col:
             missing.append("Bitimlarning umumiy qiymati" if not is_ru else "Общая сумма сделок")
 

@@ -8,10 +8,23 @@ import sys
 import io
 import os
 import uvicorn
-from dotenv import load_dotenv
 
-# Load environment variables from .env
-load_dotenv()
+# Safely load .env without crashing if python-dotenv is not installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if os.path.exists(env_file):
+        try:
+            with open(env_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        os.environ[k.strip()] = v.strip().strip("'\"")
+        except Exception:
+            pass
 
 # Ensure UTF-8 stdout on Windows
 if sys.stdout.encoding != 'utf-8':
